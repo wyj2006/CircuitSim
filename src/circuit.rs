@@ -1,22 +1,27 @@
 use crate::{
-    components::{Component, StampPackage},
+    devices::{Device, StampPackage, capacitor::Capacitor, resistor::Resistor, voltage::Voltage},
     solver::{matrix::Matrix, solve},
 };
 use indexmap::{IndexMap, IndexSet};
+use serde_json::Value;
 use std::fmt::Display;
 
-pub type NodeId = usize;
-pub type BranchId = usize;
+pub type NodeId = u32;
+pub type BranchId = u32;
 pub type Solution = IndexMap<Unknown, f64>;
 
 pub const REF_NODE: NodeId = NodeId::MAX;
 
 #[derive(Debug)]
 pub struct Circuit {
-    pub components: Vec<Box<dyn Component>>,
+    pub devices: Vec<Box<dyn Device>>,
 }
 
 impl Circuit {
+    pub fn new() -> Circuit {
+        Circuit { devices: vec![] }
+    }
+
     pub fn simulate(&self, max_time: f64) {
         let mut t = 0.0;
         let dt = 0.001;
@@ -24,24 +29,12 @@ impl Circuit {
 
         while t < max_time {
             init_value = self.step(dt, &init_value);
-
-            println!("{t}");
-            for (unknown, value) in &init_value {
-                println!("{unknown} = {value}")
-            }
-            println!();
-
             t += dt;
         }
     }
 
     pub fn step(&self, dt: f64, init_value: &Solution) -> Solution {
-        let unknowns: IndexSet<_> = self
-            .components
-            .iter()
-            .map(|x| x.unknown())
-            .flatten()
-            .collect();
+        let unknowns: IndexSet<_> = self.devices.iter().map(|x| x.unknown()).flatten().collect();
         let unknowns = unknowns
             .iter()
             .filter(|x| !matches!(x, Unknown::Voltage(REF_NODE)))
@@ -55,8 +48,8 @@ impl Circuit {
         let mut coef = Matrix::zeros(unknowns.len(), unknowns.len());
         let mut rhs = Matrix::zeros(unknowns.len(), 1);
 
-        for component in &self.components {
-            component.stamp(StampPackage {
+        for device in &self.devices {
+            device.stamp(StampPackage {
                 coef: &mut coef,
                 rhs: &mut rhs,
                 unknown_map: &unknown_map,
@@ -86,5 +79,45 @@ impl Display for Unknown {
             Unknown::Voltage(a) => write!(f, "u{a}"),
             Unknown::Current(a) => write!(f, "i{a}"),
         }
+    }
+}
+
+impl From<&Value> for Circuit {
+    fn from(value: &Value) -> Self {
+        let a = value.as_array().unwrap();
+
+        let mut devices: Vec<Box<dyn Device>> = vec![];
+
+        for i in a {
+            let device_type = i["type"].as_str().unwrap();
+
+            match device_type {
+                "resistor" => {
+                    devices.push(Box::new(Resistor {
+                        value: i["value"].as_f64().unwrap(),
+                        pos: i["pos"].as_u64().unwrap() as NodeId,
+                        neg: i["neg"].as_u64().unwrap() as NodeId,
+                    }));
+                }
+                "voltage" => {
+                    devices.push(Box::new(Voltage {
+                        value: i["value"].as_f64().unwrap(),
+                        pos: i["pos"].as_u64().unwrap() as NodeId,
+                        neg: i["neg"].as_u64().unwrap() as NodeId,
+                        branch: i["branch"].as_u64().unwrap() as BranchId,
+                    }));
+                }
+                "capacitor" => {
+                    devices.push(Box::new(Capacitor {
+                        value: i["value"].as_f64().unwrap(),
+                        pos: i["pos"].as_u64().unwrap() as NodeId,
+                        neg: i["neg"].as_u64().unwrap() as NodeId,
+                    }));
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        Circuit { devices }
     }
 }

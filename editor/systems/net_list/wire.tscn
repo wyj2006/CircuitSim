@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://d1q7jxl711f7w"]
+
+[ext_resource type="Script" uid="uid://chiosdyxv8etu" path="res://systems/net_list/wire.gd" id="1_3l5ga"]
+
+[node name="Wire" type="Node2D" unique_id=414779530]
+script = ExtResource("1_3l5ga")
+
+[node name="PopupMenu" type="PopupMenu" parent="." unique_id=101108168]
+oversampling_override = 1.0
+size = Vector2i(100, 35)
+item_count = 1
+item_0/text = "删除"
+item_0/id = 0
+
+[connection signal="tree_exiting" from="." to="." method="_on_tree_exiting"]
+[connection signal="id_pressed" from="PopupMenu" to="." method="_on_popup_menu_id_pressed"]

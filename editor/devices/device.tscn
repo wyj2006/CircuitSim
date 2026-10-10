@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://b1iwc01tip4y4"]
+
+[ext_resource type="Script" uid="uid://cw731njudhyo8" path="res://devices/device.gd" id="1_cfbic"]
+[ext_resource type="PackedScene" uid="uid://b6ja2ik1xkc3p" path="res://components/editable/editable.tscn" id="2_8t3tv"]
+
+[node name="Device" type="Node2D" unique_id=517322215]
+script = ExtResource("1_cfbic")
+
+[node name="Editable" parent="." unique_id=1053472653 instance=ExtResource("2_8t3tv")]

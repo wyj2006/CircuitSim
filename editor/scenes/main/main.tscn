@@ -1,0 +1,109 @@
+[gd_scene format=3 uid="uid://b7rhs634no3cl"]
+
+[ext_resource type="PackedScene" uid="uid://y64mhuwh3igw" path="res://devices/resistor/resistor.tscn" id="1_hyk8p"]
+[ext_resource type="Script" uid="uid://cihy8v4ocg2lg" path="res://scenes/main/main.gd" id="1_iuonh"]
+[ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/net_list/net_list.tscn" id="2_k2fmo"]
+[ext_resource type="PackedScene" uid="uid://dkdth58g4mugy" path="res://devices/voltage/voltage.tscn" id="4_6q06x"]
+[ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
+[ext_resource type="PackedScene" uid="uid://dgurfm3ulgg7v" path="res://devices/capacitor/capacitor.tscn" id="5_hujxm"]
+[ext_resource type="Script" uid="uid://bxdwo8agv48wa" path="res://scenes/main/plot_window.gd" id="6_ow5a4"]
+[ext_resource type="PackedScene" uid="uid://bqidl3nw628w" path="res://scenes/devicelibrary/device_library.tscn" id="8_yyfjg"]
+
+[node name="Editor" type="Node2D" unique_id=970941608]
+script = ExtResource("1_iuonh")
+
+[node name="Devices" type="Node2D" parent="." unique_id=263305404]
+
+[node name="Resistor" parent="Devices" unique_id=517322215 instance=ExtResource("1_hyk8p")]
+position = Vector2(-100, 0)
+value = 1.0
+
+[node name="Voltage" parent="Devices" unique_id=1118311138 instance=ExtResource("4_6q06x")]
+position = Vector2(0, -100)
+value = 1.0
+
+[node name="Capacitor" parent="Devices" unique_id=172639342 instance=ExtResource("5_hujxm")]
+position = Vector2(-100, -100)
+value = 1.0
+
+[node name="Ports" type="Node2D" parent="." unique_id=974599190]
+
+[node name="NetList" parent="." unique_id=892168356 instance=ExtResource("2_k2fmo")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=444064001]
+script = ExtResource("4_l3cfh")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1920355990]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer" unique_id=911896229]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="SimButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1481376716]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+text = "开始模拟"
+
+[node name="DeviceLibButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1770576324]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "元件库"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]
+layout_mode = 2
+size_flags_vertical = 10
+
+[node name="ConnectLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer" unique_id=756053420]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "连接中..."
+
+[node name="TimeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer" unique_id=855090825]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 10
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "0"
+
+[node name="ConnectTimer" type="Timer" parent="." unique_id=239330275]
+unique_name_in_owner = true
+wait_time = 0.5
+ignore_time_scale = true
+
+[node name="StepTimer" type="Timer" parent="." unique_id=38897892]
+unique_name_in_owner = true
+wait_time = 0.001
+autostart = true
+ignore_time_scale = true
+
+[node name="PlotWindow" type="Window" parent="." unique_id=1534832730]
+oversampling_override = 1.0
+initial_position = 1
+size = Vector2i(1000, 618)
+visible = false
+script = ExtResource("6_ow5a4")
+
+[node name="DeviceLibWindow" type="Window" parent="." unique_id=1269913210]
+oversampling_override = 1.0
+title = "元件库"
+initial_position = 1
+size = Vector2i(1000, 618)
+visible = false
+
+[node name="DeviceLibrary" parent="DeviceLibWindow" unique_id=1736573774 instance=ExtResource("8_yyfjg")]
+
+[connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/SimButton" to="." method="_on_sim_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
+[connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
+[connection signal="timeout" from="StepTimer" to="." method="_on_step_timer_timeout"]
+[connection signal="close_requested" from="PlotWindow" to="PlotWindow" method="_on_close_requested"]
+[connection signal="close_requested" from="DeviceLibWindow" to="." method="_on_device_lib_window_close_requested"]

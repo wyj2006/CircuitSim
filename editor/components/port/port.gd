@@ -1,0 +1,76 @@
+class_name Port extends Node2D
+
+const SET_REF_ID = 0
+const DELETE_ID = 1
+
+@onready var net_list: NetList = $/root/Editor/NetList
+@onready var area: ColorRect = $Area
+@onready var editor: Editor = $/root/Editor
+@onready var camera: Camera2D = $/root/Editor/Camera2D
+
+var node_id := UINT32_MAX
+#靠近内部的支路ID
+var branch_id := UINT32_MAX
+var is_ref := false
+var is_free:
+    get:
+        return get_parent() == $/root/Editor/Ports
+var just_moved = false
+
+func _ready() -> void:
+    if self not in net_list.connections:
+        net_list.connections[self] = []
+    $Label.hide()
+
+    if not is_free:
+        $PopupMenu.remove_item(DELETE_ID)
+
+func _process(_delta: float) -> void:
+    area.visible = is_mouse_in_area()
+
+    if editor.state == Editor.State.Simulate:
+        $Label.show()
+        var x = "u%d"%node_id
+        if x in editor.solution:
+            $Label.text = str(editor.solution[x])
+        else:
+            $Label.text = "0"
+    else:
+        $Label.hide()
+
+func is_mouse_in_area():
+    return Rect2(area.position, area.size).has_point(get_local_mouse_position())
+
+func _input(event: InputEvent) -> void:
+    if event is InputEventMouseMotion and event.pressure == 1 and is_free and (is_mouse_in_area() or just_moved):
+        position += event.relative / camera.zoom
+        just_moved = true
+    if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT and (is_mouse_in_area() or just_moved):
+        get_viewport().set_input_as_handled()
+        if just_moved:
+            just_moved = false
+        elif is_mouse_in_area():
+            match editor.state:
+                Editor.State.Idle:
+                    editor.state = Editor.State.ConnectWire
+                    editor.selected_port = self
+                Editor.State.ConnectWire:
+                    editor.state = Editor.State.Idle
+                    if editor.selected_port != self:
+                        net_list.connect_port(self, editor.selected_port)
+                    editor.selected_port = null
+    if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_RIGHT and is_mouse_in_area():
+        get_viewport().set_input_as_handled()
+        $PopupMenu.position = DisplayServer.mouse_get_position()
+        $PopupMenu.popup()
+
+    if Input.is_action_just_pressed("cancel") and editor.selected_port == self and editor.state == Editor.State.ConnectWire:
+        editor.state = Editor.State.Idle
+        editor.selected_port = null
+
+func _on_popup_menu_id_pressed(id: int) -> void:
+    if id == SET_REF_ID:
+        is_ref = not is_ref
+        $PopupMenu.set_item_checked(SET_REF_ID, is_ref)
+    if id == DELETE_ID:
+        get_parent().remove_child(self)

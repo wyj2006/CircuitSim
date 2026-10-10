@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://clkkdgnaxkjon"]
+
+[ext_resource type="Script" uid="uid://cp1hnsdyiehvc" path="res://components/port/port.gd" id="1_clsr2"]
+
+[node name="Port" type="Node2D" unique_id=1456156079]
+script = ExtResource("1_clsr2")
+
+[node name="Area" type="ColorRect" parent="." unique_id=920127057]
+offset_left = -3.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 3.0
+color = Color(1, 0, 0, 1)
+
+[node name="Label" type="Label" parent="." unique_id=208311514]
+offset_left = -12.0
+offset_top = -16.0
+offset_right = 12.0
+offset_bottom = -4.0
+theme_override_colors/font_color = Color(3.8263947e-06, 0.657962, 1.1551381e-06, 1)
+theme_override_font_sizes/font_size = 8
+text = "abcdefghijklmnopqrstuvwxyz"
+vertical_alignment = 2
+clip_text = true
+
+[node name="PopupMenu" type="PopupMenu" parent="." unique_id=1898835346]
+oversampling_override = 1.0
+size = Vector2i(136, 62)
+item_count = 2
+item_0/text = "参考节点"
+item_0/checkable = 1
+item_0/id = 0
+item_1/text = "删除"
+item_1/id = 1
+
+[connection signal="id_pressed" from="PopupMenu" to="." method="_on_popup_menu_id_pressed"]

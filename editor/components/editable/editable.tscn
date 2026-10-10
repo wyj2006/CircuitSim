@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://b6ja2ik1xkc3p"]
+
+[ext_resource type="Script" uid="uid://b8nbepks4nbu6" path="res://components/editable/editable.gd" id="1_7a7gh"]
+[ext_resource type="PackedScene" uid="uid://byjxrt57u4t2n" path="res://components/editable/addr_editor.tscn" id="2_no0kv"]
+
+[node name="Editable" type="Node2D" unique_id=1053472653]
+script = ExtResource("1_7a7gh")
+
+[node name="Area" type="ReferenceRect" parent="." unique_id=12853982]
+border_color = Color(0, 0, 1, 1)
+border_width = 0.8
+editor_only = false
+
+[node name="AttrEditorWin" type="Window" parent="." unique_id=1197007414]
+oversampling_override = 1.0
+initial_position = 1
+size = Vector2i(1000, 618)
+visible = false
+
+[node name="AddrEditor" parent="AttrEditorWin" unique_id=331746191 instance=ExtResource("2_no0kv")]
+
+[connection signal="close_requested" from="AttrEditorWin" to="." method="_on_attr_editor_win_close_requested"]

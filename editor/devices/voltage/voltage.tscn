@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dkdth58g4mugy"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_185s5"]
+[ext_resource type="Texture2D" uid="uid://bfxy2sh116mkh" path="res://devices/voltage/source-voltage.svg" id="2_3hbkx"]
+[ext_resource type="Script" uid="uid://biwerojfupg45" path="res://devices/voltage/voltage.gd" id="2_ov5o3"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="3_ov5o3"]
+
+[node name="Voltage" unique_id=517322215 instance=ExtResource("1_185s5")]
+script = ExtResource("2_ov5o3")
+value = 0.0
+
+[node name="SourceVoltage" type="Sprite2D" parent="." index="0" unique_id=1206574160]
+texture = ExtResource("2_3hbkx")
+
+[node name="PosPort" parent="." index="1" unique_id=1456156079 instance=ExtResource("3_ov5o3")]
+position = Vector2(0, -20)
+
+[node name="NegPort" parent="." index="2" unique_id=1541753485 instance=ExtResource("3_ov5o3")]
+position = Vector2(0, 20)
+
+[node name="Editable" parent="." index="3" unique_id=1053472653]
+range_size = Vector2(20, 30)

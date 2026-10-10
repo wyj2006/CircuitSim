@@ -1,31 +1,97 @@
 pub mod circuit;
-pub mod components;
+pub mod devices;
 pub mod solver;
 
-use crate::{
-    circuit::{Circuit, REF_NODE},
-    components::{capacitor::Capacitor, resistor::Resistor, voltage::Voltage},
+use std::{
+    io::{BufRead, BufReader, BufWriter, Write},
+    net::TcpListener,
+    thread::Builder,
 };
 
+use serde_json::{Map, Value, json};
+
+use crate::circuit::{Circuit, Solution};
+
 fn main() {
-    let resistor = Resistor {
-        value: 1.0,
-        pos: 0,
-        neg: REF_NODE,
-    };
-    let voltage = Voltage {
-        value: 1.0,
-        pos: 0,
-        neg: REF_NODE,
-        branch: 0,
-    };
-    let capacitor = Capacitor {
-        value: 1.0,
-        pos: 0,
-        neg: REF_NODE,
-    };
-    let circuit = Circuit {
-        components: vec![Box::new(resistor), Box::new(voltage), Box::new(capacitor)],
-    };
-    circuit.simulate(10.0);
+    let listener = TcpListener::bind("127.0.0.1:1025").unwrap();
+
+    loop {
+        let stream = if let Ok(t) = listener.accept() {
+            t.0
+        } else {
+            continue;
+        };
+
+        Builder::new()
+            .spawn(move || {
+                let mut reader = BufReader::new(&stream);
+                let mut writer = BufWriter::new(&stream);
+
+                let mut circuit = Circuit::new();
+                let mut t = 0.0;
+                let dt = 0.001;
+                let mut init_value = Solution::new();
+
+                println!("Connected {}", stream.peer_addr().unwrap());
+
+                loop {
+                    let mut buf: Vec<u8> = vec![];
+                    if match reader.read_until(b'\0', &mut buf) {
+                        Ok(t) => t,
+                        Err(e) => panic!("{e}"),
+                    } == 0
+                    {
+                        break;
+                    }
+
+                    if let Some(&b'\0') = buf.last() {
+                        buf.pop();
+                    }
+                    let buf = String::from_utf8_lossy(&buf);
+
+                    let value = if let Ok(t) = serde_json::from_str::<Value>(&buf) {
+                        t
+                    } else {
+                        continue;
+                    };
+
+                    let command = value["command"].as_str().unwrap();
+                    match command {
+                        "reset_simulation" => {
+                            circuit = Circuit::from(&value["circuit"]);
+                            println!("{circuit:#?}");
+                            t = 0.0;
+                        }
+                        "step_simulation" => {
+                            init_value = circuit.step(dt, &init_value);
+
+                            let mut solution = Map::new();
+                            for (unknown, value) in &init_value {
+                                solution.insert(unknown.to_string(), (*value).into());
+                            }
+                            println!("{solution:?}");
+
+                            writer
+                                .write_all(
+                                    json!({
+                                        "type":"simulate_solution",
+                                        "time":t,
+                                        "solution":solution,
+                                    })
+                                    .to_string()
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+
+                            t += dt;
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+
+                println!("Disconnected {}", stream.peer_addr().unwrap());
+            })
+            .unwrap();
+    }
 }

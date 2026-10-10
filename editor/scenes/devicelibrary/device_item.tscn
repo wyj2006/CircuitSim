@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://dhmkkq5aw3ioh"]
+
+[ext_resource type="Script" uid="uid://cqdrjgqdimap3" path="res://scenes/devicelibrary/device_item.gd" id="1_gf8ka"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gf8ka"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gf8ka"]
+bg_color = Color(0.9411765, 0.9411765, 0.9411765, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slker"]
+bg_color = Color(0.9019608, 0.9019608, 0.9019608, 1)
+
+[node name="DeviceItem" type="Control" unique_id=1345053354]
+layout_mode = 3
+anchors_preset = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_gf8ka")
+
+[node name="Button" type="Button" parent="." unique_id=596857644]
+unique_name_in_owner = true
+layout_mode = 1
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_gf8ka")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_gf8ka")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slker")
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
