@@ -1,11 +1,12 @@
 use crate::{
     circuit::{CurrentId, NodeId, Unknown},
-    devices::{Device, StampPackage},
+    devices::{Device, DeviceId, StampPackage},
 };
 use indexmap::IndexSet;
 
 #[derive(Debug)]
 pub struct Voltage {
+    pub device_id: DeviceId,
     pub value: f64,
     pub pos: NodeId,
     pub neg: NodeId,
@@ -13,6 +14,14 @@ pub struct Voltage {
 }
 
 impl Device for Voltage {
+    fn device_id(&self) -> DeviceId {
+        self.device_id
+    }
+
+    fn nodes(&self) -> Vec<NodeId> {
+        vec![self.pos, self.neg]
+    }
+
     fn unknown(&self) -> IndexSet<Unknown> {
         IndexSet::from([
             Unknown::Voltage(self.pos),

@@ -15,12 +15,14 @@ use std::{
 
 fn main() {
     let inductor = Inductor {
+        device_id: 0,
         value: 1.0,
         pos: 0,
         neg: REF_NODE,
         current: 0,
     };
     let capacitor = Capacitor {
+        device_id: 1,
         value: 1.0,
         pos: 0,
         neg: REF_NODE,
@@ -79,6 +81,7 @@ fn main() {
                             circuit = Circuit::from(&value["circuit"]);
                             println!("{circuit:#?}");
                             t = 0.0;
+                            init_value = Solution::new();
                         }
                         "step_simulation" => {
                             init_value = circuit.step(dt, &init_value);

@@ -4,13 +4,18 @@ pub mod resistor;
 pub mod voltage;
 
 use crate::{
-    circuit::{Solution, Unknown},
+    circuit::{NodeId, Solution, Unknown},
     solver::matrix::Matrix,
 };
 use indexmap::{IndexMap, IndexSet};
 use std::fmt::Debug;
 
+pub type DeviceId = u32;
+
 pub trait Device: Debug {
+    fn device_id(&self) -> DeviceId;
+    fn nodes(&self) -> Vec<NodeId>;
+
     fn unknown(&self) -> IndexSet<Unknown> {
         IndexSet::new()
     }

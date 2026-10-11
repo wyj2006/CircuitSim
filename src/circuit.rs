@@ -7,7 +7,7 @@ use crate::{
 };
 use indexmap::{IndexMap, IndexSet};
 use serde_json::Value;
-use std::fmt::Display;
+use std::{collections::VecDeque, fmt::Display};
 
 pub type NodeId = u32;
 pub type CurrentId = u32;
@@ -43,8 +43,73 @@ impl Circuit {
         }
     }
 
+    pub fn split_devices(&self) -> Vec<Vec<&Box<dyn Device>>> {
+        let mut device_map = IndexMap::new();
+        let mut node_connection = IndexMap::new();
+
+        for device in &self.devices {
+            device_map.insert(device.device_id(), device);
+
+            for node in device.nodes() {
+                if !node_connection.contains_key(&node) {
+                    node_connection.insert(node, vec![]);
+                }
+                node_connection[&node].push(device);
+            }
+        }
+
+        let mut group_map = IndexMap::new();
+        let mut scanned = vec![];
+        let mut group_id = 0;
+
+        for device in &self.devices {
+            if scanned.contains(&device.device_id()) {
+                continue;
+            }
+
+            let mut queue = VecDeque::from([device]);
+
+            while let Some(device) = queue.pop_front() {
+                let device_id = device.device_id();
+                if scanned.contains(&device_id) {
+                    continue;
+                }
+                scanned.push(device_id);
+                group_map.insert(device_id, group_id);
+                for node in device.nodes() {
+                    queue.extend(&node_connection[&node]);
+                }
+            }
+
+            group_id += 1;
+        }
+
+        let mut groups = vec![vec![]; group_id];
+
+        for (device_id, group_id) in &group_map {
+            groups[*group_id].push(device_map[device_id]);
+        }
+
+        groups
+    }
+
     pub fn step(&self, dt: f64, init_value: &Solution) -> Solution {
-        let unknowns: IndexSet<_> = self.devices.iter().map(|x| x.unknown()).flatten().collect();
+        let mut solution = Solution::new();
+
+        for devices in self.split_devices() {
+            solution.extend(self.solve(dt, init_value, devices));
+        }
+
+        solution
+    }
+
+    pub fn solve(
+        &self,
+        dt: f64,
+        init_value: &Solution,
+        devices: Vec<&Box<dyn Device>>,
+    ) -> Solution {
+        let unknowns: IndexSet<_> = devices.iter().map(|x| x.unknown()).flatten().collect();
         let unknowns = unknowns
             .iter()
             .filter(|x| !matches!(x, Unknown::Voltage(REF_NODE)))
@@ -58,7 +123,7 @@ impl Circuit {
         let mut coef = Matrix::zeros(unknowns.len(), unknowns.len());
         let mut rhs = Matrix::zeros(unknowns.len(), 1);
 
-        for device in &self.devices {
+        for device in &devices {
             device.stamp(StampPackage {
                 coef: &mut coef,
                 rhs: &mut rhs,
@@ -69,7 +134,7 @@ impl Circuit {
         }
 
         let x = solve(&coef, &rhs);
-        let mut solution = IndexMap::new();
+        let mut solution = Solution::new();
         for (unknown, index) in unknown_map {
             solution.insert(unknown, x[(index, 0)]);
         }
@@ -97,6 +162,7 @@ impl From<&Value> for Circuit {
         let a = value.as_array().unwrap();
 
         let mut devices: Vec<Box<dyn Device>> = vec![];
+        let mut device_id = 0;
 
         for i in a {
             let device_type = i["type"].as_str().unwrap();
@@ -104,6 +170,7 @@ impl From<&Value> for Circuit {
             match device_type {
                 "resistor" => {
                     devices.push(Box::new(Resistor {
+                        device_id,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -111,6 +178,7 @@ impl From<&Value> for Circuit {
                 }
                 "voltage" => {
                     devices.push(Box::new(Voltage {
+                        device_id,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -119,6 +187,7 @@ impl From<&Value> for Circuit {
                 }
                 "capacitor" => {
                     devices.push(Box::new(Capacitor {
+                        device_id,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -126,6 +195,7 @@ impl From<&Value> for Circuit {
                 }
                 "inductor" => {
                     devices.push(Box::new(Inductor {
+                        device_id,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -134,6 +204,8 @@ impl From<&Value> for Circuit {
                 }
                 _ => unreachable!(),
             }
+
+            device_id += 1;
         }
 
         Circuit { devices }
