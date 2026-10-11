@@ -48,11 +48,13 @@ size_flags_vertical = 4
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
+focus_mode = 0
 text = "开始模拟"
 
 [node name="DeviceLibButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1770576324]
 layout_mode = 2
 size_flags_horizontal = 0
+focus_mode = 0
 text = "元件库"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]

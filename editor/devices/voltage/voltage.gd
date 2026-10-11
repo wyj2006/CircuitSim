@@ -5,15 +5,16 @@ class_name Voltage extends Device
 @onready var pos_port = $PosPort
 @onready var neg_port = $NegPort
 
+func _ready() -> void:
+    current_num = 1
+
 func construct() -> Dictionary:
-    assert(pos_port.branch_id == neg_port.branch_id)
-    
     return {
         "type": "voltage",
         "value": value,
         "pos": pos_port.node_id,
         "neg": neg_port.node_id,
-        "branch": pos_port.branch_id
+        "current": current_ids[0]
     }
 
 func get_device_name() -> String:

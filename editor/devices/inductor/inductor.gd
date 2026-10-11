@@ -2,12 +2,16 @@ class_name Inductor extends Device
 
 @export var value := 0.0
 
+func _ready() -> void:
+    current_num = 1
+
 func construct() -> Dictionary:
     return {
         "type": "inductor",
         "value": value,
         "pos": $PosPort.node_id,
-        "neg": $NegPort.node_id
+        "neg": $NegPort.node_id,
+        "current": current_ids[0]
     }
 
 func get_device_name() -> String:

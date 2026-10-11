@@ -41,27 +41,20 @@ func _allocate_node_id(port: Port, cur_id: int, allocated: Array):
     for i in net_list.connections[port]:
         _allocate_node_id(i, cur_id, allocated)
 
-func allocate_branch_id():
+func allocate_current_id():
     var cur_id = 0
 
     var devices = $Devices.get_children()
     for device in devices:
-        var ports: Array[Port] = []
-        for child in device.get_children():
-            if child is Port:
-                ports.append(child)
-        if len(ports) <= 2:
-            for port in ports:
-                port.branch_id = cur_id
+        if not device is Device:
+            continue
+        for i in range(device.current_num):
+            device.current_ids.append(cur_id)
             cur_id += 1
-        else:
-            for port in ports:
-                port.branch_id = cur_id
-                cur_id += 1
 
 func construct():
     allocate_node_id()
-    allocate_branch_id()
+    allocate_current_id()
 
     var devices = $Devices.get_children()
     var circuit = []
@@ -151,3 +144,13 @@ func _on_device_lib_button_pressed() -> void:
 
 func _on_device_lib_window_close_requested() -> void:
     $DeviceLibWindow.hide()
+
+func _input(event: InputEvent) -> void:
+    if state != Editor.State.AddDevice:
+        return
+    if Input.is_action_just_pressed("cancel"):
+        state = Editor.State.Idle
+        device_to_add.get_parent().remove_child(device_to_add)
+        device_to_add = null
+    if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+        state = Editor.State.Idle

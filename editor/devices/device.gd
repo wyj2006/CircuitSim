@@ -16,6 +16,9 @@ var region:
     get:
         return get_region()
 
+var current_ids = []
+var current_num = 0
+
 func construct() -> Dictionary:
     return {}
 

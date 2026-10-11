@@ -10,7 +10,7 @@ use serde_json::Value;
 use std::fmt::Display;
 
 pub type NodeId = u32;
-pub type BranchId = i32;
+pub type CurrentId = u32;
 pub type Solution = IndexMap<Unknown, f64>;
 
 pub const REF_NODE: NodeId = NodeId::MAX;
@@ -80,7 +80,7 @@ impl Circuit {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Unknown {
     Voltage(NodeId),
-    Current(BranchId),
+    Current(CurrentId),
 }
 
 impl Display for Unknown {
@@ -114,7 +114,7 @@ impl From<&Value> for Circuit {
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
-                        branch: i["branch"].as_u64().unwrap() as BranchId,
+                        current: i["current"].as_u64().unwrap() as CurrentId,
                     }));
                 }
                 "capacitor" => {
@@ -129,7 +129,7 @@ impl From<&Value> for Circuit {
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
-                        branch: i["branch"].as_u64().unwrap() as BranchId,
+                        current: i["current"].as_u64().unwrap() as CurrentId,
                     }));
                 }
                 _ => unreachable!(),

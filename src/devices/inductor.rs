@@ -1,5 +1,5 @@
 use crate::{
-    circuit::{BranchId, NodeId, Unknown},
+    circuit::{CurrentId, NodeId, Unknown},
     devices::{Device, StampPackage},
 };
 use indexmap::IndexSet;
@@ -9,7 +9,7 @@ pub struct Inductor {
     pub value: f64,
     pub pos: NodeId,
     pub neg: NodeId,
-    pub branch: BranchId,
+    pub current: CurrentId,
 }
 
 impl Device for Inductor {
@@ -17,7 +17,7 @@ impl Device for Inductor {
         IndexSet::from([
             Unknown::Voltage(self.pos),
             Unknown::Voltage(self.neg),
-            Unknown::Current(self.branch),
+            Unknown::Current(self.current),
         ])
     }
 
@@ -31,7 +31,7 @@ impl Device for Inductor {
             ..
         } = pack;
 
-        let k = unknown_map[&Unknown::Current(self.branch)];
+        let k = unknown_map[&Unknown::Current(self.current)];
         coef[(k, k)] -= self.value / dt;
 
         if let Some(p) = unknown_map.get(&Unknown::Voltage(self.pos)) {
@@ -45,7 +45,7 @@ impl Device for Inductor {
 
         rhs[(k, 0)] -= self.value / dt
             * *init_value
-                .get(&Unknown::Current(self.branch))
+                .get(&Unknown::Current(self.current))
                 .unwrap_or(&0.0);
     }
 }

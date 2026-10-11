@@ -18,7 +18,7 @@ fn main() {
         value: 1.0,
         pos: 0,
         neg: REF_NODE,
-        branch: 0,
+        current: 0,
     };
     let capacitor = Capacitor {
         value: 1.0,

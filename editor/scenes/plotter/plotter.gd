@@ -43,6 +43,8 @@ func _ready() -> void:
 
 func add_data(time: float, solution: Dictionary):
     for i in variables:
+        if i not in solution:
+            continue
         if solution[i] == null or not is_finite(solution[i]):
             continue
         dataset.append_sample_to_one_series(variables[i], time, solution[i])

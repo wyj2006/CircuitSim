@@ -9,8 +9,6 @@ const DELETE_ID = 1
 @onready var camera: Camera2D = $/root/Editor/Camera2D
 
 var node_id := UINT32_MAX
-#靠近内部的支路ID
-var branch_id := UINT32_MAX
 var is_ref := false
 var is_free:
     get:
@@ -26,6 +24,8 @@ func _ready() -> void:
         $PopupMenu.remove_item(DELETE_ID)
 
 func _process(_delta: float) -> void:
+    global_rotation = 0
+    
     area.visible = is_mouse_in_area()
 
     if editor.state == Editor.State.Simulate:
