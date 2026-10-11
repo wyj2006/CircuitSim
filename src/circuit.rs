@@ -1,5 +1,8 @@
 use crate::{
-    devices::{Device, StampPackage, capacitor::Capacitor, resistor::Resistor, voltage::Voltage},
+    devices::{
+        Device, StampPackage, capacitor::Capacitor, inductor::Inductor, resistor::Resistor,
+        voltage::Voltage,
+    },
     solver::{matrix::Matrix, solve},
 };
 use indexmap::{IndexMap, IndexSet};
@@ -7,7 +10,7 @@ use serde_json::Value;
 use std::fmt::Display;
 
 pub type NodeId = u32;
-pub type BranchId = u32;
+pub type BranchId = i32;
 pub type Solution = IndexMap<Unknown, f64>;
 
 pub const REF_NODE: NodeId = NodeId::MAX;
@@ -22,13 +25,20 @@ impl Circuit {
         Circuit { devices: vec![] }
     }
 
-    pub fn simulate(&self, max_time: f64) {
+    pub fn simulate(&self, max_time: f64, init_value: Option<Solution>) {
         let mut t = 0.0;
         let dt = 0.001;
-        let mut init_value = Solution::new();
+        let mut init_value = init_value.unwrap_or(Solution::new());
 
         while t < max_time {
             init_value = self.step(dt, &init_value);
+
+            println!("{t}");
+            for (unknown, value) in &init_value {
+                println!("{unknown} = {value}");
+            }
+            println!();
+
             t += dt;
         }
     }
@@ -112,6 +122,14 @@ impl From<&Value> for Circuit {
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
+                    }));
+                }
+                "inductor" => {
+                    devices.push(Box::new(Inductor {
+                        value: i["value"].as_f64().unwrap(),
+                        pos: i["pos"].as_u64().unwrap() as NodeId,
+                        neg: i["neg"].as_u64().unwrap() as NodeId,
+                        branch: i["branch"].as_u64().unwrap() as BranchId,
                     }));
                 }
                 _ => unreachable!(),

@@ -2,17 +2,35 @@ pub mod circuit;
 pub mod devices;
 pub mod solver;
 
+use crate::{
+    circuit::{Circuit, REF_NODE, Solution, Unknown},
+    devices::{capacitor::Capacitor, inductor::Inductor},
+};
+use serde_json::{Map, Value, json};
 use std::{
     io::{BufRead, BufReader, BufWriter, Write},
     net::TcpListener,
     thread::Builder,
 };
 
-use serde_json::{Map, Value, json};
-
-use crate::circuit::{Circuit, Solution};
-
 fn main() {
+    let inductor = Inductor {
+        value: 1.0,
+        pos: 0,
+        neg: REF_NODE,
+        branch: 0,
+    };
+    let capacitor = Capacitor {
+        value: 1.0,
+        pos: 0,
+        neg: REF_NODE,
+    };
+
+    let circuit = Circuit {
+        devices: vec![Box::new(inductor), Box::new(capacitor)],
+    };
+    circuit.simulate(10.0, Some(Solution::from([(Unknown::Voltage(0), 1.0)])));
+
     let listener = TcpListener::bind("127.0.0.1:1025").unwrap();
 
     loop {
