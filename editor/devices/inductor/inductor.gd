@@ -7,6 +7,7 @@ func _ready() -> void:
 
 func construct() -> Dictionary:
     return {
+        "device_id": device_id,
         "type": "inductor",
         "value": value,
         "pos": $PosPort.node_id,

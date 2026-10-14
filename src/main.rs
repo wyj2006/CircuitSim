@@ -3,8 +3,8 @@ pub mod devices;
 pub mod solver;
 
 use crate::{
-    circuit::{Circuit, REF_NODE, Solution, Unknown},
-    devices::{capacitor::Capacitor, inductor::Inductor},
+    circuit::{Circuit, REF_NODE, Solution},
+    devices::{DeviceId, resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage},
 };
 use serde_json::{Map, Value, json};
 use std::{
@@ -14,24 +14,39 @@ use std::{
 };
 
 fn main() {
-    let inductor = Inductor {
-        device_id: 0,
-        value: 1.0,
-        pos: 0,
-        neg: REF_NODE,
-        current: 0,
-    };
-    let capacitor = Capacitor {
-        device_id: 1,
-        value: 1.0,
-        pos: 0,
-        neg: REF_NODE,
-    };
-
     let circuit = Circuit {
-        devices: vec![Box::new(inductor), Box::new(capacitor)],
+        devices: vec![
+            Box::new(Voltage {
+                device_id: 0,
+                value: 1.0,
+                pos: 0,
+                neg: REF_NODE,
+                current: 0,
+            }),
+            Box::new(Resistor {
+                device_id: 1,
+                value: 4.0,
+                pos: 1,
+                neg: REF_NODE,
+            }),
+            Box::new(Resistor {
+                device_id: 2,
+                value: 5.0,
+                pos: 2,
+                neg: REF_NODE,
+            }),
+            Box::new(SPDTSwitch {
+                device_id: 3,
+                common: 0,
+                throw1: 1,
+                throw2: 2,
+                is_touch1: false,
+                current1: 1,
+                current2: 2,
+            }),
+        ],
     };
-    circuit.simulate(10.0, Some(Solution::from([(Unknown::Voltage(0), 1.0)])));
+    circuit.simulate(0.001, None);
 
     let listener = TcpListener::bind("127.0.0.1:1025").unwrap();
 
@@ -79,7 +94,6 @@ fn main() {
                     match command {
                         "reset_simulation" => {
                             circuit = Circuit::from(&value["circuit"]);
-                            println!("{circuit:#?}");
                             t = 0.0;
                             init_value = Solution::new();
                         }
@@ -107,8 +121,20 @@ fn main() {
 
                             t += dt;
                         }
+                        "update_device" => {
+                            let device_id = value["device_id"].as_u64().unwrap() as DeviceId;
+                            for device in &mut circuit.devices {
+                                if device.device_id() != device_id {
+                                    continue;
+                                }
+                                device.update(value["attributes"].as_object().unwrap());
+                                break;
+                            }
+                        }
                         _ => unreachable!(),
                     }
+
+                    println!("{circuit:#?}");
                 }
 
                 println!("Disconnected {}", stream.peer_addr().unwrap());

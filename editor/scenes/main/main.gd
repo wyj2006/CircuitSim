@@ -52,9 +52,20 @@ func allocate_current_id():
             device.current_ids.append(cur_id)
             cur_id += 1
 
+func allocate_device_id():
+    var cur_id = 0
+
+    var devices = $Devices.get_children()
+    for device in devices:
+        if not device is Device:
+            continue
+        device.device_id = cur_id
+        cur_id += 1
+
 func construct():
     allocate_node_id()
     allocate_current_id()
+    allocate_device_id()
 
     var devices = $Devices.get_children()
     var circuit = []
@@ -73,6 +84,10 @@ func _process(_delta: float) -> void:
     if state == State.AddDevice:
         device_to_add.position = $Devices.to_local(get_global_mouse_position())
 
+func send_to_server(data):
+    client.put_data(JSON.stringify(data).to_utf8_buffer())
+    client.put_u8(0)
+
 func _on_sim_button_pressed() -> void:
     match state:
         State.Idle:
@@ -81,11 +96,10 @@ func _on_sim_button_pressed() -> void:
 
             var circuit = construct()
             print(circuit)
-            client.put_data(JSON.stringify({
+            send_to_server({
                 "command": "reset_simulation",
                 "circuit": circuit
-            }).to_utf8_buffer())
-            client.put_u8(0)
+            })
         State.Simulate:
             state = State.Idle
             $%SimButton.text = "开始模拟"
@@ -113,8 +127,7 @@ func _on_connect_timer_timeout() -> void:
 func _on_step_timer_timeout() -> void:
     if state != State.Simulate:
         return
-    client.put_data(JSON.stringify({"command": "step_simulation"}).to_utf8_buffer())
-    client.put_u8(0)
+    send_to_server({"command": "step_simulation"})
 
     var available_bytes = client.get_available_bytes()
     if available_bytes == 0:

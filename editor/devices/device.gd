@@ -16,6 +16,7 @@ var region:
     get:
         return get_region()
 
+var device_id = 0
 var current_ids = []
 var current_num = 0
 
@@ -26,7 +27,7 @@ func get_device_name() -> String:
     return "Unknown"
 
 func get_texture() -> Texture:
-    return null
+    return Texture.new()
 
 func get_attributes() -> Array[Dictionary]:
     return []

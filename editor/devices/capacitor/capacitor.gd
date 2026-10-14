@@ -4,6 +4,7 @@ class_name Capacitor extends Device
 
 func construct() -> Dictionary:
     return {
+        "device_id": device_id,
         "type": "capacitor",
         "value": value,
         "pos": $PosPort.node_id,

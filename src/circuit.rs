@@ -1,7 +1,7 @@
 use crate::{
     devices::{
-        Device, StampPackage, capacitor::Capacitor, inductor::Inductor, resistor::Resistor,
-        voltage::Voltage,
+        Device, DeviceId, StampPackage, capacitor::Capacitor, inductor::Inductor,
+        resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage,
     },
     solver::{matrix::Matrix, solve},
 };
@@ -25,7 +25,7 @@ impl Circuit {
         Circuit { devices: vec![] }
     }
 
-    pub fn simulate(&self, max_time: f64, init_value: Option<Solution>) {
+    pub fn simulate(&self, max_time: f64, init_value: Option<Solution>) -> Solution {
         let mut t = 0.0;
         let dt = 0.001;
         let mut init_value = init_value.unwrap_or(Solution::new());
@@ -41,6 +41,8 @@ impl Circuit {
 
             t += dt;
         }
+
+        init_value
     }
 
     pub fn split_devices(&self) -> Vec<Vec<&Box<dyn Device>>> {
@@ -90,6 +92,8 @@ impl Circuit {
             groups[*group_id].push(device_map[device_id]);
         }
 
+        groups.retain(|x| !x.is_empty());
+
         groups
     }
 
@@ -119,24 +123,57 @@ impl Circuit {
         for (i, v) in unknowns.iter().enumerate() {
             unknown_map.insert(**v, i);
         }
+        //参考节点的未知量永远在所有未知量的最后
+        unknown_map.insert(Unknown::Voltage(REF_NODE), unknowns.len());
 
-        let mut coef = Matrix::zeros(unknowns.len(), unknowns.len());
-        let mut rhs = Matrix::zeros(unknowns.len(), 1);
+        let mut coef_with_ref = Matrix::zeros(unknown_map.len(), unknown_map.len());
+        let mut rhs_with_ref = Matrix::zeros(unknown_map.len(), 1);
 
         for device in &devices {
             device.stamp(StampPackage {
-                coef: &mut coef,
-                rhs: &mut rhs,
+                coef: &mut coef_with_ref,
+                rhs: &mut rhs_with_ref,
                 unknown_map: &unknown_map,
                 dt,
                 init_value: &init_value,
             });
         }
 
+        //从方程中删除参考节点相关的部分
+        let mut coef = Matrix::zeros(unknown_map.len() - 1, unknown_map.len() - 1);
+        let mut rhs = Matrix::zeros(unknown_map.len() - 1, 1);
+        let ref_index = *unknown_map.get(&Unknown::Voltage(REF_NODE)).unwrap();
+
+        for ((i, j), value) in coef_with_ref.data {
+            if i == ref_index || j == ref_index {
+                continue;
+            }
+            let x = if i > ref_index { i - 1 } else { i };
+            let y = if j > ref_index { j - 1 } else { j };
+            coef[(x, y)] = value;
+        }
+
+        for ((i, j), value) in rhs_with_ref.data {
+            assert!(j == 0);
+            if i == ref_index {
+                continue;
+            }
+            rhs[(if i > ref_index { i - 1 } else { i }, 0)] = value;
+        }
+
+        println!("{:?}", coef.to_vec());
+        println!("{:?}", rhs.to_vec());
+
         let x = solve(&coef, &rhs);
         let mut solution = Solution::new();
         for (unknown, index) in unknown_map {
-            solution.insert(unknown, x[(index, 0)]);
+            if index == ref_index {
+                continue;
+            }
+            solution.insert(
+                unknown,
+                x[(if index > ref_index { index - 1 } else { index }, 0)],
+            );
         }
         solution
     }
@@ -162,7 +199,6 @@ impl From<&Value> for Circuit {
         let a = value.as_array().unwrap();
 
         let mut devices: Vec<Box<dyn Device>> = vec![];
-        let mut device_id = 0;
 
         for i in a {
             let device_type = i["type"].as_str().unwrap();
@@ -170,7 +206,7 @@ impl From<&Value> for Circuit {
             match device_type {
                 "resistor" => {
                     devices.push(Box::new(Resistor {
-                        device_id,
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -178,7 +214,7 @@ impl From<&Value> for Circuit {
                 }
                 "voltage" => {
                     devices.push(Box::new(Voltage {
-                        device_id,
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -187,7 +223,7 @@ impl From<&Value> for Circuit {
                 }
                 "capacitor" => {
                     devices.push(Box::new(Capacitor {
-                        device_id,
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
@@ -195,17 +231,26 @@ impl From<&Value> for Circuit {
                 }
                 "inductor" => {
                     devices.push(Box::new(Inductor {
-                        device_id,
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
                         value: i["value"].as_f64().unwrap(),
                         pos: i["pos"].as_u64().unwrap() as NodeId,
                         neg: i["neg"].as_u64().unwrap() as NodeId,
                         current: i["current"].as_u64().unwrap() as CurrentId,
                     }));
                 }
+                "spdt_switch" => {
+                    devices.push(Box::new(SPDTSwitch {
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
+                        common: i["common"].as_f64().unwrap() as NodeId,
+                        throw1: i["throw1"].as_u64().unwrap() as NodeId,
+                        throw2: i["throw2"].as_u64().unwrap() as NodeId,
+                        is_touch1: i["is_touch1"].as_bool().unwrap(),
+                        current1: i["current1"].as_u64().unwrap() as CurrentId,
+                        current2: i["current2"].as_u64().unwrap() as CurrentId,
+                    }));
+                }
                 _ => unreachable!(),
             }
-
-            device_id += 1;
         }
 
         Circuit { devices }

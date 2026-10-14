@@ -36,29 +36,17 @@ impl Device for Capacitor {
         } = pack;
 
         let g = self.value / dt;
-        let p = unknown_map.get(&Unknown::Voltage(self.pos));
-        let n = unknown_map.get(&Unknown::Voltage(self.neg));
+        let p = unknown_map[&Unknown::Voltage(self.pos)];
+        let n = unknown_map[&Unknown::Voltage(self.neg)];
         let old = init_value.get(&Unknown::Voltage(self.pos)).unwrap_or(&0.0)
             - init_value.get(&Unknown::Voltage(self.neg)).unwrap_or(&0.0);
 
-        if let Some(p) = p
-            && let Some(n) = n
-        {
-            coef[(*p, *p)] += g;
-            coef[(*p, *n)] += -g;
-            coef[(*n, *p)] += -g;
-            coef[(*n, *n)] += g;
+        coef[(p, p)] += g;
+        coef[(p, n)] += -g;
+        coef[(n, p)] += -g;
+        coef[(n, n)] += g;
 
-            rhs[(*p, 0)] += g * old;
-            rhs[(*n, 0)] -= g * old;
-        } else if let Some(p) = p {
-            coef[(*p, *p)] += g;
-
-            rhs[(*p, 0)] += g * old;
-        } else if let Some(n) = n {
-            coef[(*n, *n)] += g;
-
-            rhs[(*n, 0)] -= g * old;
-        }
+        rhs[(p, 0)] += g * old;
+        rhs[(n, 0)] -= g * old;
     }
 }

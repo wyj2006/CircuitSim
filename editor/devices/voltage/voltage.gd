@@ -10,6 +10,7 @@ func _ready() -> void:
 
 func construct() -> Dictionary:
     return {
+        "device_id": device_id,
         "type": "voltage",
         "value": value,
         "pos": pos_port.node_id,

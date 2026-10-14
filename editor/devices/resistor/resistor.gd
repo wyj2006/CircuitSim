@@ -4,8 +4,9 @@ class_name Resistor extends Device
 
 func construct() -> Dictionary:
     return {
+        "device_id": device_id,
         "type": "resistor",
-        "value": value,
+        "value": 1 / value,
         "pos": $PosPort.node_id,
         "neg": $NegPort.node_id
     }

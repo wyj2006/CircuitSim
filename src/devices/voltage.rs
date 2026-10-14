@@ -39,14 +39,15 @@ impl Device for Voltage {
         } = pack;
 
         let k = unknown_map[&Unknown::Current(self.current)];
-        if let Some(p) = unknown_map.get(&Unknown::Voltage(self.pos)) {
-            coef[(*p, k)] += 1.0;
-            coef[(k, *p)] += 1.0;
-        }
-        if let Some(n) = unknown_map.get(&Unknown::Voltage(self.neg)) {
-            coef[(*n, k)] -= 1.0;
-            coef[(k, *n)] -= 1.0;
-        }
+        let p = unknown_map[&Unknown::Voltage(self.pos)];
+        let n = unknown_map[&Unknown::Voltage(self.neg)];
+
+        coef[(p, k)] += 1.0;
+        coef[(k, p)] += 1.0;
+
+        coef[(n, k)] -= 1.0;
+        coef[(k, n)] -= 1.0;
+
         rhs[(k, 0)] += self.value;
     }
 }

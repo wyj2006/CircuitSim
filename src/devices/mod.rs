@@ -1,6 +1,7 @@
 pub mod capacitor;
 pub mod inductor;
 pub mod resistor;
+pub mod spdt_switch;
 pub mod voltage;
 
 use crate::{
@@ -8,6 +9,7 @@ use crate::{
     solver::matrix::Matrix,
 };
 use indexmap::{IndexMap, IndexSet};
+use serde_json::{Map, Value};
 use std::fmt::Debug;
 
 pub type DeviceId = u32;
@@ -22,6 +24,9 @@ pub trait Device: Debug {
 
     #[allow(unused_variables)]
     fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) {}
+
+    #[allow(unused_variables)]
+    fn update(&mut self, attributes: &Map<String, Value>) {}
 }
 
 pub struct StampPackage<'a> {

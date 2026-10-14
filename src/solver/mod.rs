@@ -16,7 +16,7 @@ pub fn lu_decomposition(a: &Matrix) -> (Matrix, Matrix, Matrix) {
         let mut pivot = k;
 
         for i in k..rows {
-            if u[(i, k)].abs() > u[(pivot, k)] {
+            if u[(i, k)].abs() > u[(pivot, k)].abs() {
                 pivot = i;
             }
         }
