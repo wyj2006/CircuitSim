@@ -1,4 +1,5 @@
 pub mod capacitor;
+pub mod diode;
 pub mod inductor;
 pub mod resistor;
 pub mod spdt_switch;
@@ -35,4 +36,5 @@ pub struct StampPackage<'a> {
     pub unknown_map: &'a IndexMap<Unknown, usize>,
     pub dt: f64,
     pub init_value: &'a Solution,
+    pub iter_value: &'a Solution,
 }

@@ -1,11 +1,8 @@
 [gd_scene format=3 uid="uid://b7rhs634no3cl"]
 
-[ext_resource type="PackedScene" uid="uid://y64mhuwh3igw" path="res://devices/resistor/resistor.tscn" id="1_hyk8p"]
 [ext_resource type="Script" uid="uid://cihy8v4ocg2lg" path="res://scenes/main/main.gd" id="1_iuonh"]
 [ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/net_list/net_list.tscn" id="2_k2fmo"]
-[ext_resource type="PackedScene" uid="uid://dkdth58g4mugy" path="res://devices/voltage/voltage.tscn" id="4_6q06x"]
 [ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
-[ext_resource type="PackedScene" uid="uid://dgurfm3ulgg7v" path="res://devices/capacitor/capacitor.tscn" id="5_hujxm"]
 [ext_resource type="Script" uid="uid://bxdwo8agv48wa" path="res://scenes/main/plot_window.gd" id="6_ow5a4"]
 [ext_resource type="PackedScene" uid="uid://bqidl3nw628w" path="res://scenes/devicelibrary/device_library.tscn" id="8_yyfjg"]
 
@@ -13,18 +10,6 @@
 script = ExtResource("1_iuonh")
 
 [node name="Devices" type="Node2D" parent="." unique_id=263305404]
-
-[node name="Resistor" parent="Devices" unique_id=517322215 instance=ExtResource("1_hyk8p")]
-position = Vector2(-100, 0)
-value = 1.0
-
-[node name="Voltage" parent="Devices" unique_id=1118311138 instance=ExtResource("4_6q06x")]
-position = Vector2(0, -100)
-value = 1.0
-
-[node name="Capacitor" parent="Devices" unique_id=172639342 instance=ExtResource("5_hujxm")]
-position = Vector2(-100, -100)
-value = 1.0
 
 [node name="Ports" type="Node2D" parent="." unique_id=974599190]
 

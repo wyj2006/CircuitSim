@@ -1,6 +1,6 @@
 use crate::{
     devices::{
-        Device, DeviceId, StampPackage, capacitor::Capacitor, inductor::Inductor,
+        Device, DeviceId, StampPackage, capacitor::Capacitor, diode::Diode, inductor::Inductor,
         resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage,
     },
     solver::{matrix::Matrix, solve},
@@ -14,6 +14,9 @@ pub type CurrentId = u32;
 pub type Solution = IndexMap<Unknown, f64>;
 
 pub const REF_NODE: NodeId = NodeId::MAX;
+pub const REL_LIMIT: f64 = 1e-3;
+pub const V_ABS_LIMIT: f64 = 1e-6;
+pub const I_ABS_LIMIT: f64 = 10e-12;
 
 #[derive(Debug)]
 pub struct Circuit {
@@ -113,6 +116,9 @@ impl Circuit {
         init_value: &Solution,
         devices: Vec<&Box<dyn Device>>,
     ) -> Solution {
+        let mut iter_value = init_value.clone();
+        let mut solution;
+
         let unknowns: IndexSet<_> = devices.iter().map(|x| x.unknown()).flatten().collect();
         let unknowns = unknowns
             .iter()
@@ -126,54 +132,83 @@ impl Circuit {
         //参考节点的未知量永远在所有未知量的最后
         unknown_map.insert(Unknown::Voltage(REF_NODE), unknowns.len());
 
-        let mut coef_with_ref = Matrix::zeros(unknown_map.len(), unknown_map.len());
-        let mut rhs_with_ref = Matrix::zeros(unknown_map.len(), 1);
+        loop {
+            let mut coef_with_ref = Matrix::zeros(unknown_map.len(), unknown_map.len());
+            let mut rhs_with_ref = Matrix::zeros(unknown_map.len(), 1);
 
-        for device in &devices {
-            device.stamp(StampPackage {
-                coef: &mut coef_with_ref,
-                rhs: &mut rhs_with_ref,
-                unknown_map: &unknown_map,
-                dt,
-                init_value: &init_value,
-            });
-        }
-
-        //从方程中删除参考节点相关的部分
-        let mut coef = Matrix::zeros(unknown_map.len() - 1, unknown_map.len() - 1);
-        let mut rhs = Matrix::zeros(unknown_map.len() - 1, 1);
-        let ref_index = *unknown_map.get(&Unknown::Voltage(REF_NODE)).unwrap();
-
-        for ((i, j), value) in coef_with_ref.data {
-            if i == ref_index || j == ref_index {
-                continue;
+            for device in &devices {
+                device.stamp(StampPackage {
+                    coef: &mut coef_with_ref,
+                    rhs: &mut rhs_with_ref,
+                    unknown_map: &unknown_map,
+                    dt,
+                    init_value: init_value,
+                    iter_value: &iter_value,
+                });
             }
-            let x = if i > ref_index { i - 1 } else { i };
-            let y = if j > ref_index { j - 1 } else { j };
-            coef[(x, y)] = value;
-        }
 
-        for ((i, j), value) in rhs_with_ref.data {
-            assert!(j == 0);
-            if i == ref_index {
-                continue;
+            //从方程中删除参考节点相关的部分
+            let mut coef = Matrix::zeros(unknown_map.len() - 1, unknown_map.len() - 1);
+            let mut rhs = Matrix::zeros(unknown_map.len() - 1, 1);
+            let ref_index = *unknown_map.get(&Unknown::Voltage(REF_NODE)).unwrap();
+
+            for ((i, j), value) in coef_with_ref.data {
+                if i == ref_index || j == ref_index {
+                    continue;
+                }
+                let x = if i > ref_index { i - 1 } else { i };
+                let y = if j > ref_index { j - 1 } else { j };
+                coef[(x, y)] = value;
             }
-            rhs[(if i > ref_index { i - 1 } else { i }, 0)] = value;
-        }
 
-        println!("{:?}", coef.to_vec());
-        println!("{:?}", rhs.to_vec());
-
-        let x = solve(&coef, &rhs);
-        let mut solution = Solution::new();
-        for (unknown, index) in unknown_map {
-            if index == ref_index {
-                continue;
+            for ((i, j), value) in rhs_with_ref.data {
+                assert!(j == 0);
+                if i == ref_index {
+                    continue;
+                }
+                rhs[(if i > ref_index { i - 1 } else { i }, 0)] = value;
             }
-            solution.insert(
-                unknown,
-                x[(if index > ref_index { index - 1 } else { index }, 0)],
-            );
+
+            let x = solve(&coef, &rhs);
+            solution = Solution::new();
+            for (unknown, index) in &unknown_map {
+                if *index == ref_index {
+                    continue;
+                }
+                solution.insert(
+                    *unknown,
+                    x[(
+                        if *index > ref_index {
+                            *index - 1
+                        } else {
+                            *index
+                        },
+                        0,
+                    )],
+                );
+            }
+
+            if solution.iter().all(|(unknown, value)| {
+                let a = *value;
+                let Some(&b) = iter_value.get(unknown) else {
+                    return false;
+                };
+                if !a.is_finite() || !b.is_finite() {
+                    //求解失败
+                    return true;
+                }
+
+                (a - b).abs()
+                    <= (REL_LIMIT * a.abs().max(b.abs())
+                        + match unknown {
+                            Unknown::Voltage(..) => V_ABS_LIMIT,
+                            Unknown::Current(..) => I_ABS_LIMIT,
+                        })
+            }) {
+                break;
+            }
+
+            iter_value = solution;
         }
         solution
     }
@@ -247,6 +282,15 @@ impl From<&Value> for Circuit {
                         is_touch1: i["is_touch1"].as_bool().unwrap(),
                         current1: i["current1"].as_u64().unwrap() as CurrentId,
                         current2: i["current2"].as_u64().unwrap() as CurrentId,
+                    }));
+                }
+                "diode" => {
+                    devices.push(Box::new(Diode {
+                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
+                        pos: i["pos"].as_u64().unwrap() as NodeId,
+                        neg: i["neg"].as_u64().unwrap() as NodeId,
+                        saturation_current: i["saturation_current"].as_f64().unwrap(),
+                        thermal_voltage: i["thermal_voltage"].as_f64().unwrap(),
                     }));
                 }
                 _ => unreachable!(),

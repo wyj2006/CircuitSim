@@ -2,12 +2,13 @@ class_name Wire extends Node2D
 
 const DELETE_ID = 0
 
+@export var a_port: Port
+@export var b_port: Port
+
 @onready var editor: Editor = $/root/Editor
 @onready var net_list: NetList = get_parent()
 @onready var astar: AStarGrid2D = net_list.astar
 
-var a_port: Port
-var b_port: Port
 var color = Color.BLACK
 var points = []
 var threshold = 4
@@ -40,6 +41,15 @@ func _draw() -> void:
 func _ready() -> void:
     a_port.tree_exiting.connect(func(): get_parent().remove_child(self))
     b_port.tree_exiting.connect(func(): get_parent().remove_child(self))
+
+    if a_port not in net_list.connections:
+        net_list.connections[a_port] = []
+    if b_port not in net_list.connections[a_port]:
+        net_list.connections[a_port].append(b_port)
+    if b_port not in net_list.connections:
+        net_list.connections[b_port] = []
+    if a_port not in net_list.connections[b_port]:
+        net_list.connections[b_port].append(a_port)
 
 func _process(_delta: float) -> void:
     queue_redraw()

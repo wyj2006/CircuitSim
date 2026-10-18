@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://2rjjbx77yfbk"]
+
+[ext_resource type="PackedScene" uid="uid://b7rhs634no3cl" path="res://scenes/main/main.tscn" id="1_tpwcg"]
+[ext_resource type="PackedScene" uid="uid://dkdth58g4mugy" path="res://devices/voltage/voltage.tscn" id="2_ebt4q"]
+[ext_resource type="PackedScene" uid="uid://y64mhuwh3igw" path="res://devices/resistor/resistor.tscn" id="3_hgrul"]
+[ext_resource type="PackedScene" uid="uid://dq2l1elhsi6s4" path="res://devices/diode/diode.tscn" id="4_7da3r"]
+[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/net_list/wire.tscn" id="5_i1c74"]
+
+[node name="Editor" unique_id=970941608 instance=ExtResource("1_tpwcg")]
+
+[node name="Voltage" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="0" unique_id=517322215 instance=ExtResource("2_ebt4q")]
+position = Vector2(-200, -100)
+value = 1.0
+
+[node name="NegPort" parent="Devices/Voltage" index="2" unique_id=1541753485]
+is_ref = true
+
+[node name="Resistor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=1560180456 instance=ExtResource("3_hgrul")]
+position = Vector2(-144, -131)
+value = 1.0
+
+[node name="Diode" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="2" unique_id=424304459 instance=ExtResource("4_7da3r")]
+position = Vector2(-145, -37)
+rotation = 1.5707964
+isat_base = 1.0
+isat_exp = -9.0
+vt_base = 28.85
+vt_exp = -3.0
+
+[node name="Wire" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="0" unique_id=414779530 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("5_i1c74")]
+a_port = NodePath("../../Devices/Voltage/PosPort")
+b_port = NodePath("../../Devices/Resistor/PosPort")
+
+[node name="Wire2" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="1" unique_id=841738203 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("5_i1c74")]
+a_port = NodePath("../../Devices/Resistor/NegPort")
+b_port = NodePath("../../Devices/Diode/PosPort")
+
+[node name="Wire3" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="2" unique_id=64132875 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("5_i1c74")]
+a_port = NodePath("../../Devices/Diode/NegPort")
+b_port = NodePath("../../Devices/Voltage/NegPort")
+
+[editable path="Devices/Voltage"]
+[editable path="Devices/Resistor"]
+[editable path="Devices/Diode"]

@@ -3,9 +3,13 @@ pub mod devices;
 pub mod solver;
 
 use crate::{
-    circuit::{Circuit, REF_NODE, Solution},
-    devices::{DeviceId, resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage},
+    circuit::{Circuit, REF_NODE, Solution, Unknown},
+    devices::{
+        DeviceId, capacitor::Capacitor, diode::Diode, inductor::Inductor, resistor::Resistor,
+        voltage::Voltage,
+    },
 };
+use indexmap::IndexMap;
 use serde_json::{Map, Value, json};
 use std::{
     io::{BufRead, BufReader, BufWriter, Write},
@@ -14,40 +18,6 @@ use std::{
 };
 
 fn main() {
-    let circuit = Circuit {
-        devices: vec![
-            Box::new(Voltage {
-                device_id: 0,
-                value: 1.0,
-                pos: 0,
-                neg: REF_NODE,
-                current: 0,
-            }),
-            Box::new(Resistor {
-                device_id: 1,
-                value: 4.0,
-                pos: 1,
-                neg: REF_NODE,
-            }),
-            Box::new(Resistor {
-                device_id: 2,
-                value: 5.0,
-                pos: 2,
-                neg: REF_NODE,
-            }),
-            Box::new(SPDTSwitch {
-                device_id: 3,
-                common: 0,
-                throw1: 1,
-                throw2: 2,
-                is_touch1: false,
-                current1: 1,
-                current2: 2,
-            }),
-        ],
-    };
-    circuit.simulate(0.001, None);
-
     let listener = TcpListener::bind("127.0.0.1:1025").unwrap();
 
     loop {
@@ -140,5 +110,65 @@ fn main() {
                 println!("Disconnected {}", stream.peer_addr().unwrap());
             })
             .unwrap();
+    }
+}
+
+pub fn test_rl_oscillator() {
+    let inductor = Inductor {
+        device_id: 0,
+        value: 1.0,
+        pos: 0,
+        neg: REF_NODE,
+        current: 0,
+    };
+    let capacitor = Capacitor {
+        device_id: 1,
+        value: 1.0,
+        pos: 0,
+        neg: REF_NODE,
+    };
+
+    let circuit = Circuit {
+        devices: vec![Box::new(inductor), Box::new(capacitor)],
+    };
+    circuit.simulate(10.0, Some(Solution::from([(Unknown::Voltage(0), 1.0)])));
+}
+
+pub fn test_diode() {
+    let mut i = -5.0;
+    while i <= 5.0 {
+        let solution = Circuit {
+            devices: vec![
+                Box::new(Voltage {
+                    device_id: 0,
+                    pos: 0,
+                    neg: REF_NODE,
+                    value: i as f64,
+                    current: 0,
+                }),
+                Box::new(Resistor {
+                    device_id: 1,
+                    pos: 0,
+                    neg: 1,
+                    value: 1e3,
+                }),
+                Box::new(Diode {
+                    device_id: 2,
+                    pos: 1,
+                    neg: REF_NODE,
+                    saturation_current: 10e-9,
+                    thermal_voltage: 28.85e-3,
+                }),
+            ],
+        }
+        .step(0.001, &IndexMap::new());
+
+        println!("{i}");
+        for (unknown, value) in &solution {
+            println!("{unknown} = {value}");
+        }
+        println!();
+
+        i += 0.1;
     }
 }

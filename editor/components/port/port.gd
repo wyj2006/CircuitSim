@@ -3,13 +3,14 @@ class_name Port extends Node2D
 const SET_REF_ID = 0
 const DELETE_ID = 1
 
+@export var is_ref := false
+
 @onready var net_list: NetList = $/root/Editor/NetList
 @onready var area: ColorRect = $Area
 @onready var editor: Editor = $/root/Editor
 @onready var camera: Camera2D = $/root/Editor/Camera2D
 
 var node_id := UINT32_MAX
-var is_ref := false
 var is_free:
     get:
         return get_parent() == $/root/Editor/Ports

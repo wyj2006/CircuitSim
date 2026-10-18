@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dq2l1elhsi6s4"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_iusr3"]
+[ext_resource type="Script" uid="uid://dfpr3c47x7rfy" path="res://devices/diode/diode.gd" id="2_nb31j"]
+[ext_resource type="Texture2D" uid="uid://df7w2suh1plq3" path="res://devices/diode/Symbol_Diode.svg" id="3_17q6b"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="4_txcme"]
+
+[node name="Diode" unique_id=517322215 instance=ExtResource("1_iusr3")]
+script = ExtResource("2_nb31j")
+saturation_current = 1e-08
+thermal_voltage = 0.02875
+
+[node name="Editable" parent="." index="0" unique_id=1053472653]
+range_size = Vector2(40, 30)
+
+[node name="SymbolDiode" type="Sprite2D" parent="." index="1" unique_id=1841615657]
+texture = ExtResource("3_17q6b")
+
+[node name="PosPort" parent="." index="2" unique_id=1456156079 instance=ExtResource("4_txcme")]
+position = Vector2(-26, 0)
+
+[node name="NegPort" parent="." index="3" unique_id=244452529 instance=ExtResource("4_txcme")]
+position = Vector2(23, 0)
