@@ -10,7 +10,7 @@
 
 [node name="Voltage" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="0" unique_id=517322215 instance=ExtResource("2_ebt4q")]
 position = Vector2(-200, -100)
-value = 1.0
+value_expr = "1"
 
 [node name="NegPort" parent="Devices/Voltage" index="2" unique_id=1541753485]
 is_ref = true

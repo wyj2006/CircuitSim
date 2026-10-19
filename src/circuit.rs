@@ -1,12 +1,9 @@
 use crate::{
-    devices::{
-        Device, DeviceId, StampPackage, capacitor::Capacitor, diode::Diode, inductor::Inductor,
-        resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage,
-    },
+    devices::{Device, StampPackage},
     solver::{matrix::Matrix, solve},
 };
+use evalexpr::*;
 use indexmap::{IndexMap, IndexSet};
-use serde_json::Value;
 use std::{collections::VecDeque, fmt::Display};
 
 pub type NodeId = u32;
@@ -34,7 +31,7 @@ impl Circuit {
         let mut init_value = init_value.unwrap_or(Solution::new());
 
         while t < max_time {
-            init_value = self.step(dt, &init_value);
+            init_value = self.step(t, dt, &init_value);
 
             println!("{t}");
             for (unknown, value) in &init_value {
@@ -100,11 +97,11 @@ impl Circuit {
         groups
     }
 
-    pub fn step(&self, dt: f64, init_value: &Solution) -> Solution {
+    pub fn step(&self, time: f64, dt: f64, init_value: &Solution) -> Solution {
         let mut solution = Solution::new();
 
         for devices in self.split_devices() {
-            solution.extend(self.solve(dt, init_value, devices));
+            solution.extend(self.solve(time, dt, init_value, devices));
         }
 
         solution
@@ -112,12 +109,123 @@ impl Circuit {
 
     pub fn solve(
         &self,
+        time: f64,
         dt: f64,
         init_value: &Solution,
         devices: Vec<&Box<dyn Device>>,
     ) -> Solution {
         let mut iter_value = init_value.clone();
         let mut solution;
+
+        let context = context_map! {
+            "t" => float time,
+            "ln" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.ln()))
+            }),
+            "log" => Function::new(|arg: &Value| {
+                let args = arg.as_tuple()?;
+
+                if args.len() != 2 {
+                    return Err(EvalexprError::WrongFunctionArgumentAmount {
+                        expected: 2..=2,
+                        actual: args.len(),
+                    });
+                }
+
+                let a = args[0].as_number()?;
+                let b = args[1].as_number()?;
+
+                Ok(Value::from_float(a.log(b)))
+            }),
+            "log2" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.log2()))
+            }),
+            "log10" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.log10()))
+            }),
+            "exp" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.exp()))
+            }),
+            "exp2" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.exp2()))
+            }),
+            "pow" => Function::new(|arg: &Value| {
+                let args = arg.as_tuple()?;
+
+                if args.len() != 2 {
+                    return Err(EvalexprError::WrongFunctionArgumentAmount {
+                        expected: 2..=2,
+                        actual: args.len(),
+                    });
+                }
+
+                let a = args[0].as_number()?;
+                let b = args[1].as_number()?;
+
+                Ok(Value::from_float(a.powf(b)))
+            }),
+            "cos" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.cos()))
+            }),
+            "acos" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.acos()))
+            }),
+            "cosh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.cosh()))
+            }),
+            "acosh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.acosh()))
+            }),
+            "sin" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.sin()))
+            }),
+            "asin" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.asin()))
+            }),
+            "sinh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.sinh()))
+            }),
+            "asinh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.asinh()))
+            }),
+            "tan" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.tan()))
+            }),
+            "atan" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.atan()))
+            }),
+            "atan2" => Function::new(|arg: &Value| {
+                let args = arg.as_tuple()?;
+
+                if args.len() != 2 {
+                    return Err(EvalexprError::WrongFunctionArgumentAmount {
+                        expected: 2..=2,
+                        actual: args.len(),
+                    });
+                }
+
+                let a = args[0].as_number()?;
+                let b = args[1].as_number()?;
+
+                Ok(Value::from_float(a.atan2(b)))
+            }),
+            "tanh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.tanh()))
+            }),
+            "atanh" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.atanh()))
+            }),
+            "sqrt" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.sqrt()))
+            }),
+            "cbrt" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.cbrt()))
+            }),
+            "abs" => Function::new(|arg: &Value| {
+                Ok(Value::from_float(arg.as_number()?.abs()))
+            }),
+        }
+        .unwrap();
 
         let unknowns: IndexSet<_> = devices.iter().map(|x| x.unknown()).flatten().collect();
         let unknowns = unknowns
@@ -144,6 +252,7 @@ impl Circuit {
                     dt,
                     init_value: init_value,
                     iter_value: &iter_value,
+                    context: &context,
                 });
             }
 
@@ -226,77 +335,5 @@ impl Display for Unknown {
             Unknown::Voltage(a) => write!(f, "u{a}"),
             Unknown::Current(a) => write!(f, "i{a}"),
         }
-    }
-}
-
-impl From<&Value> for Circuit {
-    fn from(value: &Value) -> Self {
-        let a = value.as_array().unwrap();
-
-        let mut devices: Vec<Box<dyn Device>> = vec![];
-
-        for i in a {
-            let device_type = i["type"].as_str().unwrap();
-
-            match device_type {
-                "resistor" => {
-                    devices.push(Box::new(Resistor {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        value: i["value"].as_f64().unwrap(),
-                        pos: i["pos"].as_u64().unwrap() as NodeId,
-                        neg: i["neg"].as_u64().unwrap() as NodeId,
-                    }));
-                }
-                "voltage" => {
-                    devices.push(Box::new(Voltage {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        value: i["value"].as_f64().unwrap(),
-                        pos: i["pos"].as_u64().unwrap() as NodeId,
-                        neg: i["neg"].as_u64().unwrap() as NodeId,
-                        current: i["current"].as_u64().unwrap() as CurrentId,
-                    }));
-                }
-                "capacitor" => {
-                    devices.push(Box::new(Capacitor {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        value: i["value"].as_f64().unwrap(),
-                        pos: i["pos"].as_u64().unwrap() as NodeId,
-                        neg: i["neg"].as_u64().unwrap() as NodeId,
-                    }));
-                }
-                "inductor" => {
-                    devices.push(Box::new(Inductor {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        value: i["value"].as_f64().unwrap(),
-                        pos: i["pos"].as_u64().unwrap() as NodeId,
-                        neg: i["neg"].as_u64().unwrap() as NodeId,
-                        current: i["current"].as_u64().unwrap() as CurrentId,
-                    }));
-                }
-                "spdt_switch" => {
-                    devices.push(Box::new(SPDTSwitch {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        common: i["common"].as_f64().unwrap() as NodeId,
-                        throw1: i["throw1"].as_u64().unwrap() as NodeId,
-                        throw2: i["throw2"].as_u64().unwrap() as NodeId,
-                        is_touch1: i["is_touch1"].as_bool().unwrap(),
-                        current1: i["current1"].as_u64().unwrap() as CurrentId,
-                        current2: i["current2"].as_u64().unwrap() as CurrentId,
-                    }));
-                }
-                "diode" => {
-                    devices.push(Box::new(Diode {
-                        device_id: i["device_id"].as_u64().unwrap() as DeviceId,
-                        pos: i["pos"].as_u64().unwrap() as NodeId,
-                        neg: i["neg"].as_u64().unwrap() as NodeId,
-                        saturation_current: i["saturation_current"].as_f64().unwrap(),
-                        thermal_voltage: i["thermal_voltage"].as_f64().unwrap(),
-                    }));
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Circuit { devices }
     }
 }

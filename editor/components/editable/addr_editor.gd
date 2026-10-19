@@ -3,6 +3,7 @@ extends Control
 @onready var device: Device = $"../../.."
 @onready var label_template: Label = $LabelTemplate
 @onready var spinbox_template: SpinBox = $SpinBoxTemplate
+@onready var expr_editor_template: ExprEditor = $ExprEditorTemplate
 
 func _ready() -> void:
     var attrs = device.attributes
@@ -21,5 +22,11 @@ func _ready() -> void:
                 spinbox.connect("value_changed", func(value): device.set(attr["attr_name"], value))
                 spinbox.show()
                 layout.add_child(spinbox)
+            "expr":
+                var expr_editor = expr_editor_template.duplicate()
+                expr_editor.expr_str = device.get(attr["attr_name"])
+                expr_editor.expr_changed.connect(func(value): device.set(attr["attr_name"], value))
+                expr_editor.show()
+                layout.add_child(expr_editor)
 
         $VBoxContainer.add_child(layout)

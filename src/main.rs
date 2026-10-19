@@ -1,3 +1,4 @@
+pub mod builder;
 pub mod circuit;
 pub mod devices;
 pub mod solver;
@@ -9,6 +10,7 @@ use crate::{
         voltage::Voltage,
     },
 };
+use evalexpr::*;
 use indexmap::IndexMap;
 use serde_json::{Map, Value, json};
 use std::{
@@ -68,7 +70,7 @@ fn main() {
                             init_value = Solution::new();
                         }
                         "step_simulation" => {
-                            init_value = circuit.step(dt, &init_value);
+                            init_value = circuit.step(t, dt, &init_value);
 
                             let mut solution = Map::new();
                             for (unknown, value) in &init_value {
@@ -143,7 +145,7 @@ pub fn test_diode() {
                     device_id: 0,
                     pos: 0,
                     neg: REF_NODE,
-                    value: i as f64,
+                    value_expr: build_operator_tree(&format!("{i}")).unwrap(),
                     current: 0,
                 }),
                 Box::new(Resistor {
@@ -161,7 +163,7 @@ pub fn test_diode() {
                 }),
             ],
         }
-        .step(0.001, &IndexMap::new());
+        .step(0.0, 0.001, &IndexMap::new());
 
         println!("{i}");
         for (unknown, value) in &solution {

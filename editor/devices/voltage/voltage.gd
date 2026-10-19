@@ -1,6 +1,6 @@
 class_name Voltage extends Device
 
-@export var value := 0.0
+@export var value_expr = "0"
 
 @onready var pos_port = $PosPort
 @onready var neg_port = $NegPort
@@ -12,7 +12,7 @@ func construct() -> Dictionary:
     return {
         "device_id": device_id,
         "type": "voltage",
-        "value": value,
+        "value_expr": value_expr,
         "pos": pos_port.node_id,
         "neg": neg_port.node_id,
         "current": current_ids[0]
@@ -26,7 +26,7 @@ func get_texture() -> Texture:
 
 func get_attributes() -> Array[Dictionary]:
     return [ {
-        "display_name": "电压",
-        "attr_name": "value",
-        "type": "float"
+        "display_name": "电压表达式",
+        "attr_name": "value_expr",
+        "type": "expr"
     }]

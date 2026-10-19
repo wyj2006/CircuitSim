@@ -2,12 +2,13 @@ use crate::{
     circuit::{CurrentId, NodeId, Unknown},
     devices::{Device, DeviceId, StampPackage},
 };
+use evalexpr::*;
 use indexmap::IndexSet;
 
 #[derive(Debug)]
 pub struct Voltage {
     pub device_id: DeviceId,
-    pub value: f64,
+    pub value_expr: Node,
     pub pos: NodeId,
     pub neg: NodeId,
     pub current: CurrentId,
@@ -35,6 +36,7 @@ impl Device for Voltage {
             coef,
             rhs,
             unknown_map,
+            context,
             ..
         } = pack;
 
@@ -48,6 +50,11 @@ impl Device for Voltage {
         coef[(n, k)] -= 1.0;
         coef[(k, n)] -= 1.0;
 
-        rhs[(k, 0)] += self.value;
+        rhs[(k, 0)] += match self.value_expr.eval_with_context(context).unwrap() {
+            Value::Boolean(a) => a as i64 as f64,
+            Value::Float(a) => a,
+            Value::Int(a) => a as f64,
+            _ => todo!(),
+        };
     }
 }

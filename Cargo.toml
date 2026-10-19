@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+evalexpr = "13.1.0"
 indexmap = "2.14.2"
 serde = "1.0.229"
 serde_json = "1.0.151"

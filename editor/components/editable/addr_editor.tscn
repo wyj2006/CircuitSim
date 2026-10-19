@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://byjxrt57u4t2n"]
 
 [ext_resource type="Script" uid="uid://b5dnwluaghuas" path="res://components/editable/addr_editor.gd" id="1_25vc1"]
+[ext_resource type="Script" uid="uid://184l3uqqdysb" path="res://components/editable/expr_editor_template.gd" id="2_iebj7"]
 
 [node name="AddrEditor" type="Control" unique_id=331746191]
 layout_mode = 3
@@ -34,3 +35,19 @@ offset_bottom = 31.0
 min_value = -9.223372e+18
 max_value = 9.223372e+18
 step = 0.001
+
+[node name="ExprEditorTemplate" type="HBoxContainer" parent="." unique_id=1548852973]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_iebj7")
+
+[node name="ExprText" type="LineEdit" parent="ExprEditorTemplate" unique_id=1924258305]
+layout_mode = 2
+
+[node name="ErrorLabel" type="Label" parent="ExprEditorTemplate" unique_id=617062976]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+
+[connection signal="text_changed" from="ExprEditorTemplate/ExprText" to="ExprEditorTemplate" method="_on_expr_text_text_changed"]

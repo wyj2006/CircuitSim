@@ -9,6 +9,7 @@ use crate::{
     circuit::{NodeId, Solution, Unknown},
     solver::matrix::Matrix,
 };
+use evalexpr::*;
 use indexmap::{IndexMap, IndexSet};
 use serde_json::{Map, Value};
 use std::fmt::Debug;
@@ -37,4 +38,5 @@ pub struct StampPackage<'a> {
     pub dt: f64,
     pub init_value: &'a Solution,
     pub iter_value: &'a Solution,
+    pub context: &'a HashMapContext<DefaultNumericTypes>,
 }
