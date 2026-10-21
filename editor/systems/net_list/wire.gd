@@ -39,8 +39,18 @@ func _draw() -> void:
         draw_rect(Rect2(closest - size / 2, size), Color.RED)
 
 func _ready() -> void:
-    a_port.tree_exiting.connect(func(): get_parent().remove_child(self))
-    b_port.tree_exiting.connect(func(): get_parent().remove_child(self))
+    a_port.tree_exiting.connect(func():
+        var parent = get_parent()
+        if parent == null:
+            return
+        parent.remove_child(self)
+    )
+    b_port.tree_exiting.connect(func():
+        var parent = get_parent()
+        if parent == null:
+            return
+        parent.remove_child(self)
+    )
 
     if a_port not in net_list.connections:
         net_list.connections[a_port] = []

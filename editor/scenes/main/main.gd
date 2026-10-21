@@ -84,6 +84,39 @@ func _process(_delta: float) -> void:
     if state == State.AddDevice:
         device_to_add.position = $Devices.to_local(get_global_mouse_position())
 
+    client.poll()
+    if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+        return
+
+    var available_bytes = client.get_available_bytes()
+    if available_bytes == 0:
+        return
+    var data: PackedByteArray = client.get_data(available_bytes)[1]
+    var json = JSON.parse_string(data.get_string_from_utf8())
+    if json == null:
+        return
+    match json["type"]:
+        "simulate_solution":
+            var time = json["time"]
+            solution = json["solution"]
+            print(time)
+            print(solution)
+            $%TimeLabel.text = str(time)
+
+            if plotter == null:
+                plotter = PlotterScene.instantiate()
+                for i in solution:
+                    plotter.variables[i] = 0
+                plot_window.add_child(plotter)
+                plot_window.show()
+            plotter.add_data(time, solution)
+        "error":
+            $%ErrorDialog.dialog_text = json["message"]
+            $%ErrorDialog.popup()
+
+            if state == State.Simulate:
+                $%SimButton.pressed.emit()
+
 func send_to_server(data):
     client.put_data(JSON.stringify(data).to_utf8_buffer())
     client.put_u8(0)
@@ -103,6 +136,9 @@ func _on_sim_button_pressed() -> void:
         State.Simulate:
             state = State.Idle
             $%SimButton.text = "开始模拟"
+
+            if plotter == null:
+                return
 
             plot_window.hide()
             plot_window.remove_child(plotter)

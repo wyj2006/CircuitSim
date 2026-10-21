@@ -10,14 +10,33 @@ use crate::{
         voltage::Voltage,
     },
 };
+use anyhow::Result;
 use evalexpr::*;
 use indexmap::IndexMap;
 use serde_json::{Map, Value, json};
 use std::{
     io::{BufRead, BufReader, BufWriter, Write},
-    net::TcpListener,
+    net::{TcpListener, TcpStream},
     thread::Builder,
 };
+
+#[macro_export]
+macro_rules! anyhow_trace {
+    ($msg:literal $(,)?) => {
+        anyhow!($msg).context(format!("文件'{}'的第'{}'行",file!(),line!()))
+    };
+    ($err:expr $(,)?) => {
+        anyhow!($err).context(format!("文件'{}'的第'{}'行",file!(),line!()))
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        anyhow!($fmt, $($arg)*).context(format!("文件'{}'的第'{}'行",file!(),line!()))
+    };
+}
+
+pub fn send(writer: &mut BufWriter<&TcpStream>, value: Value) {
+    writer.write_all(value.to_string().as_bytes()).unwrap();
+    writer.flush().unwrap();
+}
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:1025").unwrap();
@@ -62,48 +81,62 @@ fn main() {
                         continue;
                     };
 
-                    let command = value["command"].as_str().unwrap();
-                    match command {
-                        "reset_simulation" => {
-                            circuit = Circuit::from(&value["circuit"]);
-                            t = 0.0;
-                            init_value = Solution::new();
-                        }
-                        "step_simulation" => {
-                            init_value = circuit.step(t, dt, &init_value);
+                    let Some(command) = value["command"].as_str() else {
+                        continue;
+                    };
 
-                            let mut solution = Map::new();
-                            for (unknown, value) in &init_value {
-                                solution.insert(unknown.to_string(), (*value).into());
+                    match (|| -> Result<()> {
+                        match command {
+                            "reset_simulation" => {
+                                circuit = Circuit::try_from(&value["circuit"])?;
+                                t = 0.0;
+                                init_value = Solution::new();
                             }
-                            println!("{solution:?}");
+                            "step_simulation" => {
+                                init_value = circuit.step(t, dt, &init_value)?;
 
-                            writer
-                                .write_all(
+                                let mut solution = Map::new();
+                                for (unknown, value) in &init_value {
+                                    solution.insert(unknown.to_string(), (*value).into());
+                                }
+                                println!("{solution:?}");
+
+                                send(
+                                    &mut writer,
                                     json!({
                                         "type":"simulate_solution",
                                         "time":t,
                                         "solution":solution,
-                                    })
-                                    .to_string()
-                                    .as_bytes(),
-                                )
-                                .unwrap();
-                            writer.flush().unwrap();
+                                    }),
+                                );
 
-                            t += dt;
-                        }
-                        "update_device" => {
-                            let device_id = value["device_id"].as_u64().unwrap() as DeviceId;
-                            for device in &mut circuit.devices {
-                                if device.device_id() != device_id {
-                                    continue;
-                                }
-                                device.update(value["attributes"].as_object().unwrap());
-                                break;
+                                t += dt;
                             }
+                            "update_device" => {
+                                let device_id = value["device_id"].as_u64().unwrap() as DeviceId;
+                                for device in &mut circuit.devices {
+                                    if device.device_id() != device_id {
+                                        continue;
+                                    }
+                                    device.update(value["attributes"].as_object().unwrap())?;
+                                    break;
+                                }
+                            }
+                            _ => unreachable!(),
                         }
-                        _ => unreachable!(),
+                        Ok(())
+                    })() {
+                        Ok(_) => {}
+                        Err(e) => {
+                            println!("Error: {e:?}");
+                            send(
+                                &mut writer,
+                                json!({
+                                    "type":"error",
+                                    "message":format!("{e:?}"),
+                                }),
+                            );
+                        }
                     }
 
                     println!("{circuit:#?}");
@@ -133,7 +166,9 @@ pub fn test_rl_oscillator() {
     let circuit = Circuit {
         devices: vec![Box::new(inductor), Box::new(capacitor)],
     };
-    circuit.simulate(10.0, Some(Solution::from([(Unknown::Voltage(0), 1.0)])));
+    circuit
+        .simulate(10.0, Some(Solution::from([(Unknown::Voltage(0), 1.0)])))
+        .unwrap();
 }
 
 pub fn test_diode() {
@@ -163,7 +198,8 @@ pub fn test_diode() {
                 }),
             ],
         }
-        .step(0.0, 0.001, &IndexMap::new());
+        .step(0.0, 0.001, &IndexMap::new())
+        .unwrap();
 
         println!("{i}");
         for (unknown, value) in &solution {

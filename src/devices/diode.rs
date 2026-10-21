@@ -1,8 +1,11 @@
+use anyhow::{Result, anyhow};
 use indexmap::IndexSet;
 
 use crate::{
+    anyhow_trace,
     circuit::{NodeId, Unknown},
     devices::{Device, DeviceId, StampPackage},
+    get_unknown_index,
 };
 
 #[derive(Debug)]
@@ -27,7 +30,7 @@ impl Device for Diode {
         IndexSet::from([Unknown::Voltage(self.pos), Unknown::Voltage(self.neg)])
     }
 
-    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) {
+    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) -> Result<()> {
         let StampPackage {
             coef,
             rhs,
@@ -36,8 +39,8 @@ impl Device for Diode {
             ..
         } = pack;
 
-        let a = unknown_map[&Unknown::Voltage(self.pos)];
-        let b = unknown_map[&Unknown::Voltage(self.neg)];
+        let a = get_unknown_index!(unknown_map, Unknown::Voltage(self.pos))?;
+        let b = get_unknown_index!(unknown_map, Unknown::Voltage(self.neg))?;
 
         let vd = *iter_value.get(&Unknown::Voltage(self.pos)).unwrap_or(&0.0)
             - *iter_value.get(&Unknown::Voltage(self.neg)).unwrap_or(&0.0);
@@ -52,5 +55,7 @@ impl Device for Diode {
 
         rhs[(a, 0)] -= ieq;
         rhs[(b, 0)] += ieq;
+
+        Ok(())
     }
 }

@@ -2,6 +2,7 @@ use crate::{
     devices::{Device, StampPackage},
     solver::{matrix::Matrix, solve},
 };
+use anyhow::Result;
 use evalexpr::*;
 use indexmap::{IndexMap, IndexSet};
 use std::{collections::VecDeque, fmt::Display};
@@ -25,13 +26,13 @@ impl Circuit {
         Circuit { devices: vec![] }
     }
 
-    pub fn simulate(&self, max_time: f64, init_value: Option<Solution>) -> Solution {
+    pub fn simulate(&self, max_time: f64, init_value: Option<Solution>) -> Result<Solution> {
         let mut t = 0.0;
         let dt = 0.001;
         let mut init_value = init_value.unwrap_or(Solution::new());
 
         while t < max_time {
-            init_value = self.step(t, dt, &init_value);
+            init_value = self.step(t, dt, &init_value)?;
 
             println!("{t}");
             for (unknown, value) in &init_value {
@@ -42,7 +43,7 @@ impl Circuit {
             t += dt;
         }
 
-        init_value
+        Ok(init_value)
     }
 
     pub fn split_devices(&self) -> Vec<Vec<&Box<dyn Device>>> {
@@ -97,14 +98,14 @@ impl Circuit {
         groups
     }
 
-    pub fn step(&self, time: f64, dt: f64, init_value: &Solution) -> Solution {
+    pub fn step(&self, time: f64, dt: f64, init_value: &Solution) -> Result<Solution> {
         let mut solution = Solution::new();
 
         for devices in self.split_devices() {
-            solution.extend(self.solve(time, dt, init_value, devices));
+            solution.extend(self.solve(time, dt, init_value, devices)?);
         }
 
-        solution
+        Ok(solution)
     }
 
     pub fn solve(
@@ -113,7 +114,7 @@ impl Circuit {
         dt: f64,
         init_value: &Solution,
         devices: Vec<&Box<dyn Device>>,
-    ) -> Solution {
+    ) -> Result<Solution> {
         let mut iter_value = init_value.clone();
         let mut solution;
 
@@ -253,7 +254,7 @@ impl Circuit {
                     init_value: init_value,
                     iter_value: &iter_value,
                     context: &context,
-                });
+                })?;
             }
 
             //从方程中删除参考节点相关的部分
@@ -319,7 +320,7 @@ impl Circuit {
 
             iter_value = solution;
         }
-        solution
+        Ok(solution)
     }
 }
 

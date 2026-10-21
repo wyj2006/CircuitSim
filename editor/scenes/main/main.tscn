@@ -87,6 +87,11 @@ visible = false
 
 [node name="DeviceLibrary" parent="DeviceLibWindow" unique_id=1736573774 instance=ExtResource("8_yyfjg")]
 
+[node name="ErrorDialog" type="AcceptDialog" parent="." unique_id=1274055426]
+unique_name_in_owner = true
+title = "Error"
+initial_position = 1
+
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/SimButton" to="." method="_on_sim_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]

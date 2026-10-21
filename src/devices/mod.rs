@@ -9,12 +9,23 @@ use crate::{
     circuit::{NodeId, Solution, Unknown},
     solver::matrix::Matrix,
 };
+use anyhow::Result;
 use evalexpr::*;
 use indexmap::{IndexMap, IndexSet};
 use serde_json::{Map, Value};
 use std::fmt::Debug;
 
 pub type DeviceId = u32;
+
+#[macro_export]
+macro_rules! get_unknown_index {
+    ($unknown_map:expr, $unknown:expr) => {
+        match $unknown_map.get(&$unknown) {
+            Some(t) => Ok(*t),
+            None => Err(anyhow_trace!("未定义的未知量: {}", $unknown)),
+        }
+    };
+}
 
 pub trait Device: Debug {
     fn device_id(&self) -> DeviceId;
@@ -25,10 +36,14 @@ pub trait Device: Debug {
     }
 
     #[allow(unused_variables)]
-    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) {}
+    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) -> Result<()> {
+        Ok(())
+    }
 
     #[allow(unused_variables)]
-    fn update(&mut self, attributes: &Map<String, Value>) {}
+    fn update(&mut self, attributes: &Map<String, Value>) -> Result<()> {
+        Ok(())
+    }
 }
 
 pub struct StampPackage<'a> {

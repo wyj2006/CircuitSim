@@ -1,7 +1,10 @@
 use crate::{
+    anyhow_trace,
     circuit::{CurrentId, NodeId, Unknown},
     devices::{Device, DeviceId, StampPackage},
+    get_unknown_index,
 };
+use anyhow::{Result, anyhow};
 use evalexpr::*;
 use indexmap::IndexSet;
 
@@ -31,7 +34,7 @@ impl Device for Voltage {
         ])
     }
 
-    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) {
+    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) -> Result<()> {
         let StampPackage {
             coef,
             rhs,
@@ -40,9 +43,9 @@ impl Device for Voltage {
             ..
         } = pack;
 
-        let k = unknown_map[&Unknown::Current(self.current)];
-        let p = unknown_map[&Unknown::Voltage(self.pos)];
-        let n = unknown_map[&Unknown::Voltage(self.neg)];
+        let k = get_unknown_index!(unknown_map, Unknown::Current(self.current))?;
+        let p = get_unknown_index!(unknown_map, Unknown::Voltage(self.pos))?;
+        let n = get_unknown_index!(unknown_map, Unknown::Voltage(self.neg))?;
 
         coef[(p, k)] += 1.0;
         coef[(k, p)] += 1.0;
@@ -54,7 +57,9 @@ impl Device for Voltage {
             Value::Boolean(a) => a as i64 as f64,
             Value::Float(a) => a,
             Value::Int(a) => a as f64,
-            _ => todo!(),
+            _ => return Err(anyhow_trace!("表达式的计算结果无法表示成数字")),
         };
+
+        Ok(())
     }
 }

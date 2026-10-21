@@ -1,7 +1,10 @@
 use crate::{
+    anyhow_trace,
     circuit::{NodeId, Unknown},
     devices::{Device, DeviceId, StampPackage},
+    get_unknown_index,
 };
+use anyhow::{Result, anyhow};
 use indexmap::IndexSet;
 
 #[derive(Debug)]
@@ -25,17 +28,19 @@ impl Device for Resistor {
         IndexSet::from([Unknown::Voltage(self.pos), Unknown::Voltage(self.neg)])
     }
 
-    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) {
+    fn stamp<'a, 'b>(&'a self, pack: StampPackage<'b>) -> Result<()> {
         let StampPackage {
             coef, unknown_map, ..
         } = pack;
 
-        let p = unknown_map[&Unknown::Voltage(self.pos)];
-        let n = unknown_map[&Unknown::Voltage(self.neg)];
+        let p = get_unknown_index!(unknown_map, Unknown::Voltage(self.pos))?;
+        let n = get_unknown_index!(unknown_map, Unknown::Voltage(self.neg))?;
 
         coef[(p, p)] += self.value;
         coef[(p, n)] += -self.value;
         coef[(n, p)] += -self.value;
         coef[(n, n)] += self.value;
+
+        Ok(())
     }
 }
