@@ -34,7 +34,9 @@ macro_rules! anyhow_trace {
 }
 
 pub fn send(writer: &mut BufWriter<&TcpStream>, value: Value) {
-    writer.write_all(value.to_string().as_bytes()).unwrap();
+    writer
+        .write_all((value.to_string() + "\0").as_bytes())
+        .unwrap();
     writer.flush().unwrap();
 }
 
@@ -91,6 +93,7 @@ fn main() {
                                 circuit = Circuit::try_from(&value["circuit"])?;
                                 t = 0.0;
                                 init_value = Solution::new();
+                                println!("{circuit:#?}");
                             }
                             "step_simulation" => {
                                 init_value = circuit.step(t, dt, &init_value)?;
@@ -99,7 +102,6 @@ fn main() {
                                 for (unknown, value) in &init_value {
                                     solution.insert(unknown.to_string(), (*value).into());
                                 }
-                                println!("{solution:?}");
 
                                 send(
                                     &mut writer,
@@ -138,8 +140,6 @@ fn main() {
                             );
                         }
                     }
-
-                    println!("{circuit:#?}");
                 }
 
                 println!("Disconnected {}", stream.peer_addr().unwrap());

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cihy8v4ocg2lg" path="res://scenes/main/main.gd" id="1_iuonh"]
 [ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/net_list/net_list.tscn" id="2_k2fmo"]
 [ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
+[ext_resource type="PackedScene" uid="uid://c7ofi8kh3l5vg" path="res://scenes/plotter/plotter.tscn" id="5_ow5a4"]
 [ext_resource type="Script" uid="uid://bxdwo8agv48wa" path="res://scenes/main/plot_window.gd" id="6_ow5a4"]
 [ext_resource type="PackedScene" uid="uid://bqidl3nw628w" path="res://scenes/devicelibrary/device_library.tscn" id="8_yyfjg"]
 
@@ -42,6 +43,12 @@ size_flags_horizontal = 0
 focus_mode = 0
 text = "元件库"
 
+[node name="PlotterButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1175336306]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+text = "绘图窗口"
+
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]
 layout_mode = 2
 size_flags_vertical = 10
@@ -78,6 +85,9 @@ size = Vector2i(1000, 618)
 visible = false
 script = ExtResource("6_ow5a4")
 
+[node name="Plotter" parent="PlotWindow" unique_id=1441009083 instance=ExtResource("5_ow5a4")]
+unique_name_in_owner = true
+
 [node name="DeviceLibWindow" type="Window" parent="." unique_id=1269913210]
 oversampling_override = 1.0
 title = "元件库"
@@ -95,6 +105,7 @@ initial_position = 1
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/SimButton" to="." method="_on_sim_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/PlotterButton" to="PlotWindow" method="_on_plotter_button_pressed"]
 [connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
 [connection signal="timeout" from="StepTimer" to="." method="_on_step_timer_timeout"]
 [connection signal="close_requested" from="PlotWindow" to="PlotWindow" method="_on_close_requested"]

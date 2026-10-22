@@ -4,6 +4,8 @@ class_name Plotter extends Control
 
 var dataset: TauPlot.Dataset
 var variables = {}
+var bindings: Array[TauXYSeriesBinding] = []
+var config := TauXYConfig.new()
 
 func _ready() -> void:
     dataset = TauPlot.Dataset.new(
@@ -25,26 +27,30 @@ func _ready() -> void:
     pane.y_left_axis = y_axis
     pane.overlays = [cfg]
 
-    var config := TauXYConfig.new()
     config.x_axis = x_axis
     config.panes = [pane]
 
-    var bindings: Array[TauXYSeriesBinding] = []
-    for i in variables:
-        variables[i] = dataset.add_series(i)
-        var b := TauXYSeriesBinding.new()
-        b.series_id = variables[i]
-        b.pane_index = 0
-        b.overlay_type = TauXYSeriesBinding.PaneOverlayType.LINE
-        b.y_axis_id = TauPlot.AxisId.LEFT
-        bindings.append(b)
-
-    tau_plot.plot_xy(dataset, config, bindings)
-
 func add_data(time: float, solution: Dictionary):
-    for i in variables:
-        if i not in solution:
-            continue
+    for i in solution:
+        if i not in variables:
+            variables[i] = dataset.add_series(i)
+            var b := TauXYSeriesBinding.new()
+            b.series_id = variables[i]
+            b.pane_index = 0
+            b.overlay_type = TauXYSeriesBinding.PaneOverlayType.LINE
+            b.y_axis_id = TauPlot.AxisId.LEFT
+            bindings.append(b)
+
+            tau_plot.plot_xy(dataset, config, bindings)
         if solution[i] == null or not is_finite(solution[i]):
             continue
         dataset.append_sample_to_one_series(variables[i], time, solution[i])
+
+func clear():
+    variables = {}
+    bindings = []
+    dataset = TauPlot.Dataset.new(
+        TauPlot.Dataset.Mode.PER_SERIES_X,
+        TauPlot.Dataset.XElementType.NUMERIC,
+        UINT32_MAX
+    )

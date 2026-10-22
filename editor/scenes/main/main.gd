@@ -10,8 +10,12 @@ var selected_port = null
 var device_to_add = null
 
 var client = StreamPeerTCP.new()
+var server_data: PackedByteArray = []
+
 var PlotterScene = preload("res://scenes/plotter/plotter.tscn")
-var plotter: Plotter = null
+var plotter: Plotter:
+    get:
+        return $%Plotter
 var solution = {}
 
 func allocate_node_id():
@@ -20,12 +24,16 @@ func allocate_node_id():
     var cur_id = 0
 
     for i in net_list.connections:
-        if i.is_ref:
+        if i.is_inside_tree() and i.is_ref:
             has_ref = true
             _allocate_node_id(i, UINT32_MAX, allocated)
 
     if not has_ref:
-        _allocate_node_id(net_list.connections.keys()[0], UINT32_MAX, allocated)
+        for i in net_list.connections:
+            if not i.is_inside_tree():
+                continue
+            _allocate_node_id(i, UINT32_MAX, allocated)
+            break
 
     for i in net_list.connections:
         if i in allocated:
@@ -89,33 +97,29 @@ func _process(_delta: float) -> void:
         return
 
     var available_bytes = client.get_available_bytes()
-    if available_bytes == 0:
-        return
-    var data: PackedByteArray = client.get_data(available_bytes)[1]
-    var json = JSON.parse_string(data.get_string_from_utf8())
-    if json == null:
-        return
-    match json["type"]:
-        "simulate_solution":
-            var time = json["time"]
-            solution = json["solution"]
-            print(time)
-            print(solution)
-            $%TimeLabel.text = str(time)
+    if available_bytes != 0:
+        server_data.append_array(client.get_data(available_bytes)[1])
+        
+    var index = server_data.find(0)
+    while index != -1:
+        var json = JSON.parse_string(server_data.slice(0, index).get_string_from_utf8())
+        server_data = server_data.slice(index + 1)
 
-            if plotter == null:
-                plotter = PlotterScene.instantiate()
-                for i in solution:
-                    plotter.variables[i] = 0
-                plot_window.add_child(plotter)
-                plot_window.show()
-            plotter.add_data(time, solution)
-        "error":
-            $%ErrorDialog.dialog_text = json["message"]
-            $%ErrorDialog.popup()
+        match json["type"]:
+            "simulate_solution":
+                var time = json["time"]
+                solution = json["solution"]
+                $%TimeLabel.text = str(time)
 
-            if state == State.Simulate:
-                $%SimButton.pressed.emit()
+                plotter.add_data(time, solution)
+            "error":
+                $%ErrorDialog.dialog_text = json["message"]
+                $%ErrorDialog.popup()
+
+                if state == State.Simulate:
+                    $%SimButton.pressed.emit()
+
+        index = server_data.find(0)
 
 func send_to_server(data):
     client.put_data(JSON.stringify(data).to_utf8_buffer())
@@ -126,9 +130,10 @@ func _on_sim_button_pressed() -> void:
         State.Idle:
             state = State.Simulate
             $%SimButton.text = "停止模拟"
+            $PlotWindow.show()
+            plotter.clear()
 
             var circuit = construct()
-            print(circuit)
             send_to_server({
                 "command": "reset_simulation",
                 "circuit": circuit
@@ -136,14 +141,6 @@ func _on_sim_button_pressed() -> void:
         State.Simulate:
             state = State.Idle
             $%SimButton.text = "开始模拟"
-
-            if plotter == null:
-                return
-
-            plot_window.hide()
-            plot_window.remove_child(plotter)
-            plotter.queue_free()
-            plotter = null
 
 func _on_connect_timer_timeout() -> void:
     client.poll()
@@ -164,29 +161,6 @@ func _on_step_timer_timeout() -> void:
     if state != State.Simulate:
         return
     send_to_server({"command": "step_simulation"})
-
-    var available_bytes = client.get_available_bytes()
-    if available_bytes == 0:
-        return
-    var data: PackedByteArray = client.get_data(available_bytes)[1]
-    var json = JSON.parse_string(data.get_string_from_utf8())
-    if json == null:
-        return
-    if json["type"] != "simulate_solution":
-        return
-    var time = json["time"]
-    solution = json["solution"]
-    print(time)
-    print(solution)
-    $%TimeLabel.text = str(time)
-
-    if plotter == null:
-        plotter = PlotterScene.instantiate()
-        for i in solution:
-            plotter.variables[i] = 0
-        plot_window.add_child(plotter)
-        plot_window.show()
-    plotter.add_data(time, solution)
 
 func _on_device_lib_button_pressed() -> void:
     $DeviceLibWindow.show()
