@@ -44,11 +44,10 @@ func _input(event: InputEvent) -> void:
             just_moved = false
         else:
             is_touch1 = not is_touch1
-            if editor.state == Editor.State.Simulate:
-                editor.send_to_server({
-                    "command": "update_device",
-                    "device_id": device_id,
-                    "attributes": {
-                        "is_touch1": is_touch1
-                    }
-                })
+            editor.send_to_server({
+                "command": "update_device",
+                "device_id": device_id,
+                "attributes": {
+                    "is_touch1": is_touch1
+                }
+            })

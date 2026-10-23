@@ -122,6 +122,10 @@ func _process(_delta: float) -> void:
         index = server_data.find(0)
 
 func send_to_server(data):
+    client.poll()
+    if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+        return
+        
     client.put_data(JSON.stringify(data).to_utf8_buffer())
     client.put_u8(0)
 
@@ -131,16 +135,17 @@ func _on_sim_button_pressed() -> void:
             state = State.Simulate
             $%SimButton.text = "停止模拟"
             $PlotWindow.show()
-            plotter.clear()
 
-            var circuit = construct()
             send_to_server({
-                "command": "reset_simulation",
-                "circuit": circuit
+                "command": "start_simulation",
             })
         State.Simulate:
             state = State.Idle
             $%SimButton.text = "开始模拟"
+
+            send_to_server({
+                "command": "stop_simulation",
+            })
 
 func _on_connect_timer_timeout() -> void:
     client.poll()
@@ -157,11 +162,6 @@ func _on_connect_timer_timeout() -> void:
         StreamPeerTCP.STATUS_ERROR:
             client.disconnect_from_host()
 
-func _on_step_timer_timeout() -> void:
-    if state != State.Simulate:
-        return
-    send_to_server({"command": "step_simulation"})
-
 func _on_device_lib_button_pressed() -> void:
     $DeviceLibWindow.show()
 
@@ -177,3 +177,17 @@ func _input(event: InputEvent) -> void:
         device_to_add = null
     if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
         state = Editor.State.Idle
+
+func _on_reset_button_pressed() -> void:
+    plotter.clear()
+
+    var circuit = construct()
+    send_to_server({
+        "command": "reset_simulation",
+        "circuit": circuit
+    })
+
+func _on_step_button_pressed() -> void:
+    send_to_server({
+        "command": "step_simulation"
+    })

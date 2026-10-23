@@ -17,8 +17,18 @@ use serde_json::{Map, Value, json};
 use std::{
     io::{BufRead, BufReader, BufWriter, Write},
     net::{TcpListener, TcpStream},
-    thread::Builder,
+    sync::{Arc, Mutex, mpsc::channel},
+    thread::{Builder, spawn},
 };
+
+#[derive(Debug, Clone)]
+pub enum State {
+    Idle,
+    Step,
+    Continuous,
+    Reset(Option<Value>),
+    Update(Value),
+}
 
 #[macro_export]
 macro_rules! anyhow_trace {
@@ -33,7 +43,7 @@ macro_rules! anyhow_trace {
     };
 }
 
-pub fn send(writer: &mut BufWriter<&TcpStream>, value: Value) {
+pub fn send_to_client(writer: &mut BufWriter<TcpStream>, value: Value) {
     writer
         .write_all((value.to_string() + "\0").as_bytes())
         .unwrap();
@@ -52,15 +62,107 @@ fn main() {
 
         Builder::new()
             .spawn(move || {
-                let mut reader = BufReader::new(&stream);
-                let mut writer = BufWriter::new(&stream);
-
-                let mut circuit = Circuit::new();
-                let mut t = 0.0;
-                let dt = 0.001;
-                let mut init_value = Solution::new();
-
                 println!("Connected {}", stream.peer_addr().unwrap());
+
+                let mut reader = BufReader::new(stream.try_clone().unwrap());
+                let mut writer = BufWriter::new(stream.try_clone().unwrap());
+
+                let state = Arc::new(Mutex::new(State::Idle));
+                let state2 = state.clone();
+
+                let pre_state = Arc::new(Mutex::new(State::Idle));
+                let pre_state2 = pre_state.clone();
+
+                let (tx, rx) = channel::<Value>();
+                let tx2 = tx.clone();
+
+                spawn(move || {
+                    for data in rx {
+                        send_to_client(&mut writer, data);
+                    }
+                });
+
+                Builder::new()
+                    .spawn(move || {
+                        let mut circuit = Circuit::new();
+                        let mut t = 0.0;
+                        let dt = 0.001;
+                        let mut init_value = Solution::new();
+
+                        loop {
+                            let Ok(mut state) = state2.try_lock() else {
+                                continue;
+                            };
+                            let Ok(mut pre_state) = pre_state2.try_lock() else {
+                                continue;
+                            };
+
+                            match (|| -> Result<()> {
+                                match &*state {
+                                    State::Idle => {}
+                                    State::Step => {
+                                        init_value = circuit.step(t, dt, &init_value)?;
+
+                                        let mut solution = Map::new();
+                                        for (unknown, value) in &init_value {
+                                            solution.insert(unknown.to_string(), (*value).into());
+                                        }
+
+                                        tx2.send(json!({
+                                            "type":"simulate_solution",
+                                            "time":t,
+                                            "solution":solution,
+                                        }))?;
+
+                                        t += dt;
+
+                                        *state = (*pre_state).clone();
+                                    }
+                                    State::Continuous => {
+                                        *state = State::Step;
+                                        *pre_state = State::Step;
+                                    }
+                                    State::Reset(c) => {
+                                        if let Some(c) = c {
+                                            circuit = Circuit::try_from(c)?;
+                                        }
+                                        t = 0.0;
+                                        init_value = Solution::new();
+
+                                        *state = State::Idle;
+                                    }
+                                    State::Update(value) => {
+                                        let device_id =
+                                            value["device_id"].as_u64().unwrap() as DeviceId;
+                                        for device in &mut circuit.devices {
+                                            if device.device_id() != device_id {
+                                                continue;
+                                            }
+                                            device
+                                                .update(value["attributes"].as_object().unwrap())?;
+                                            break;
+                                        }
+
+                                        *state = (*pre_state).clone();
+                                    }
+                                }
+                                Ok(())
+                            })() {
+                                Ok(_) => {}
+                                Err(e) => {
+                                    *state = State::Idle;
+
+                                    println!("Error: {e:?}");
+                                    tx2.send(json!({
+                                        "type":"error",
+                                        "message":format!("{e:?}"),
+                                    }))
+                                    .unwrap();
+                                }
+                            }
+                        }
+                    })
+                    .unwrap();
 
                 loop {
                     let mut buf: Vec<u8> = vec![];
@@ -90,39 +192,25 @@ fn main() {
                     match (|| -> Result<()> {
                         match command {
                             "reset_simulation" => {
-                                circuit = Circuit::try_from(&value["circuit"])?;
-                                t = 0.0;
-                                init_value = Solution::new();
-                                println!("{circuit:#?}");
+                                *pre_state.lock().unwrap() = State::Idle;
+                                *state.lock().unwrap() =
+                                    State::Reset(Some(value["circuit"].clone()));
                             }
                             "step_simulation" => {
-                                init_value = circuit.step(t, dt, &init_value)?;
-
-                                let mut solution = Map::new();
-                                for (unknown, value) in &init_value {
-                                    solution.insert(unknown.to_string(), (*value).into());
-                                }
-
-                                send(
-                                    &mut writer,
-                                    json!({
-                                        "type":"simulate_solution",
-                                        "time":t,
-                                        "solution":solution,
-                                    }),
-                                );
-
-                                t += dt;
+                                *pre_state.lock().unwrap() = State::Idle;
+                                *state.lock().unwrap() = State::Step;
                             }
                             "update_device" => {
-                                let device_id = value["device_id"].as_u64().unwrap() as DeviceId;
-                                for device in &mut circuit.devices {
-                                    if device.device_id() != device_id {
-                                        continue;
-                                    }
-                                    device.update(value["attributes"].as_object().unwrap())?;
-                                    break;
-                                }
+                                *pre_state.lock().unwrap() = (*state.lock().unwrap()).clone();
+                                *state.lock().unwrap() = State::Update(value.clone());
+                            }
+                            "start_simulation" => {
+                                *pre_state.lock().unwrap() = State::Idle;
+                                *state.lock().unwrap() = State::Continuous;
+                            }
+                            "stop_simulation" => {
+                                *pre_state.lock().unwrap() = State::Idle;
+                                *state.lock().unwrap() = State::Idle;
                             }
                             _ => unreachable!(),
                         }
@@ -131,13 +219,11 @@ fn main() {
                         Ok(_) => {}
                         Err(e) => {
                             println!("Error: {e:?}");
-                            send(
-                                &mut writer,
-                                json!({
-                                    "type":"error",
-                                    "message":format!("{e:?}"),
-                                }),
-                            );
+                            tx.send(json!({
+                                "type":"error",
+                                "message":format!("{e:?}"),
+                            }))
+                            .unwrap();
                         }
                     }
                 }
