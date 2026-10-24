@@ -5,25 +5,21 @@
 [ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
 [ext_resource type="PackedScene" uid="uid://c7ofi8kh3l5vg" path="res://scenes/plotter/plotter.tscn" id="5_ow5a4"]
 [ext_resource type="Script" uid="uid://bxdwo8agv48wa" path="res://scenes/main/plot_window.gd" id="6_ow5a4"]
+[ext_resource type="Script" uid="uid://bwat7xugs6f5o" path="res://scenes/main/idle_state.gd" id="7_a8run"]
+[ext_resource type="Script" uid="uid://rhme1v5e2v6d" path="res://scenes/main/add_device_state.gd" id="7_hujxm"]
+[ext_resource type="Script" uid="uid://d2wljjeky58ka" path="res://scenes/main/connect_wire_state.gd" id="7_yyfjg"]
 [ext_resource type="PackedScene" uid="uid://bqidl3nw628w" path="res://scenes/devicelibrary/device_library.tscn" id="8_yyfjg"]
+[ext_resource type="Script" uid="uid://dj838chc7lyyw" path="res://scenes/main/simulate_state.gd" id="9_b1x3f"]
 
-[sub_resource type="InputEventAction" id="InputEventAction_yyfjg"]
-action = &"reset_simulation"
-
-[sub_resource type="Shortcut" id="Shortcut_hujxm"]
-events = [SubResource("InputEventAction_yyfjg")]
-
-[sub_resource type="InputEventAction" id="InputEventAction_b1x3f"]
-action = &"start_or_stop_simulation"
-
-[sub_resource type="Shortcut" id="Shortcut_yyfjg"]
-events = [SubResource("InputEventAction_b1x3f")]
-
-[sub_resource type="InputEventAction" id="InputEventAction_a8run"]
-action = &"step_simulation"
-
-[sub_resource type="Shortcut" id="Shortcut_b1x3f"]
-events = [SubResource("InputEventAction_a8run")]
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_ow5a4"]
+var/selected_port/name = &"selected_port"
+var/selected_port/type = 24
+var/selected_port/hint = 0
+var/selected_port/hint_string = ""
+var/device_to_add/name = &"device_to_add"
+var/device_to_add/type = 24
+var/device_to_add/hint = 0
+var/device_to_add/hint_string = ""
 
 [node name="Editor" type="Node2D" unique_id=970941608]
 script = ExtResource("1_iuonh")
@@ -51,27 +47,30 @@ size_flags_vertical = 4
 [node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=979007685]
 layout_mode = 2
 
-[node name="ResetButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=102793773]
+[node name="SimButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=102793773]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-shortcut = SubResource("Shortcut_hujxm")
-text = "重置模拟"
+text = "进入模拟"
 
-[node name="SimButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=1481376716]
+[node name="PauseButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=1481376716]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 focus_mode = 0
-shortcut = SubResource("Shortcut_yyfjg")
-text = "开始模拟"
+text = "暂停模拟"
 
 [node name="StepButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=2054127190]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-shortcut = SubResource("Shortcut_b1x3f")
 text = "步进"
+
+[node name="ContinuousButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=883049194]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "持续模拟"
 
 [node name="DeviceLibButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1770576324]
 layout_mode = 2
@@ -132,10 +131,29 @@ unique_name_in_owner = true
 title = "Error"
 initial_position = 1
 
+[node name="HSM" type="LimboHSM" parent="." unique_id=1123334314]
+blackboard_plan = SubResource("BlackboardPlan_ow5a4")
+unique_name_in_owner = true
+
+[node name="Idle" type="LimboState" parent="HSM" unique_id=1296899026]
+script = ExtResource("7_a8run")
+
+[node name="ConnectWire" type="LimboState" parent="HSM" unique_id=725510771]
+script = ExtResource("7_yyfjg")
+
+[node name="AddDevice" type="LimboState" parent="HSM" unique_id=1034550189]
+script = ExtResource("7_hujxm")
+
+[node name="Simulate" type="LimboHSM" parent="HSM" unique_id=1044733686]
+script = ExtResource("9_b1x3f")
+
+[node name="ShowVoltage" type="LimboState" parent="HSM/Simulate" unique_id=1833894862]
+
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ResetButton" to="." method="_on_reset_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/SimButton" to="." method="_on_sim_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/StepButton" to="." method="_on_step_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ContinuousButton" to="." method="_on_continuous_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/PlotterButton" to="PlotWindow" method="_on_plotter_button_pressed"]
 [connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]

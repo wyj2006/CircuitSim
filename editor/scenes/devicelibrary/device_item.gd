@@ -10,9 +10,4 @@ func _ready() -> void:
     $%Button.text = device.device_name
 
 func _on_button_pressed() -> void:
-    if editor.state != Editor.State.Idle:
-        return
-
-    editor.state = Editor.State.AddDevice
-    editor.device_to_add = device_scene.instantiate()
-    editor.get_node("Devices").add_child(editor.device_to_add)
+    editor.hsm.dispatch(&"add_device", device_scene.instantiate())

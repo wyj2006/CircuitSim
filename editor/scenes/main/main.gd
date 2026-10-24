@@ -1,13 +1,19 @@
 class_name Editor extends Node2D
 
-@onready var net_list: NetList = $NetList
 @onready var plot_window: Window = $PlotWindow
+@onready var hsm: LimboHSM = $%HSM
+@onready var connect_wire_state: LimboState = $%HSM/ConnectWire
+@onready var idle_state: LimboState = $%HSM/Idle
+@onready var add_device_state: LimboState = $%HSM/AddDevice
+@onready var simulate_state: LimboHSM = $%HSM/Simulate
+@onready var showv_sim_state: LimboState = $%HSM/Simulate/ShowVoltage
 
-enum State {Idle, ConnectWire, Simulate, AddDevice}
-
-var state: State = State.Idle
-var selected_port = null
-var device_to_add = null
+var active_state: LimboState:
+    get:
+        return hsm.get_active_state()
+var leaf_state: LimboState:
+    get:
+        return hsm.get_leaf_state()
 
 var client = StreamPeerTCP.new()
 var server_data: PackedByteArray = []
@@ -18,79 +24,28 @@ var plotter: Plotter:
         return $%Plotter
 var solution = {}
 
-func allocate_node_id():
-    var allocated = []
-    var has_ref = false
-    var cur_id = 0
+func _ready() -> void:
+    hsm.add_transition(idle_state, add_device_state, &"add_device")
+    hsm.add_transition(add_device_state, idle_state, &"confirm_add_device")
+    hsm.add_transition(add_device_state, idle_state, &"cancel_add_device")
 
-    for i in net_list.connections:
-        if i.is_inside_tree() and i.is_ref:
-            has_ref = true
-            _allocate_node_id(i, UINT32_MAX, allocated)
+    hsm.add_transition(idle_state, connect_wire_state, &"connect_wire")
+    hsm.add_transition(connect_wire_state, idle_state, &"connect_wire")
+    hsm.add_transition(connect_wire_state, idle_state, &"cancel_connect_wire")
 
-    if not has_ref:
-        for i in net_list.connections:
-            if not i.is_inside_tree():
-                continue
-            _allocate_node_id(i, UINT32_MAX, allocated)
-            break
+    hsm.add_transition(idle_state, simulate_state, &"simulate")
+    hsm.add_transition(simulate_state, idle_state, &"simulate")
 
-    for i in net_list.connections:
-        if i in allocated:
-            continue
-        _allocate_node_id(i, cur_id, allocated)
-        cur_id += 1
+    hsm.add_transition(hsm.ANYSTATE, idle_state, &"error_occurred")
 
-func _allocate_node_id(port: Port, cur_id: int, allocated: Array):
-    if port in allocated:
-        return
-    allocated.append(port)
-    port.node_id = cur_id
-    for i in net_list.connections[port]:
-        _allocate_node_id(i, cur_id, allocated)
-
-func allocate_current_id():
-    var cur_id = 0
-
-    var devices = $Devices.get_children()
-    for device in devices:
-        if not device is Device:
-            continue
-        for i in range(device.current_num):
-            device.current_ids.append(cur_id)
-            cur_id += 1
-
-func allocate_device_id():
-    var cur_id = 0
-
-    var devices = $Devices.get_children()
-    for device in devices:
-        if not device is Device:
-            continue
-        device.device_id = cur_id
-        cur_id += 1
-
-func construct():
-    allocate_node_id()
-    allocate_current_id()
-    allocate_device_id()
-
-    var devices = $Devices.get_children()
-    var circuit = []
-    for device in devices:
-        circuit.append((device as Device).construct())
-    return circuit
+    hsm.initialize(self)
+    hsm.set_active(true)
 
 func _process(_delta: float) -> void:
-    $%SimButton.disabled = state == State.ConnectWire
-
     if $%ConnectTimer.is_stopped():
         client.poll()
         if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
             $%ConnectTimer.start()
-
-    if state == State.AddDevice:
-        device_to_add.position = $Devices.to_local(get_global_mouse_position())
 
     client.poll()
     if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
@@ -116,8 +71,7 @@ func _process(_delta: float) -> void:
                 $%ErrorDialog.dialog_text = json["message"]
                 $%ErrorDialog.popup()
 
-                if state == State.Simulate:
-                    $%SimButton.pressed.emit()
+                hsm.dispatch(&"error_occurred")
 
         index = server_data.find(0)
 
@@ -128,24 +82,6 @@ func send_to_server(data):
         
     client.put_data(JSON.stringify(data).to_utf8_buffer())
     client.put_u8(0)
-
-func _on_sim_button_pressed() -> void:
-    match state:
-        State.Idle:
-            state = State.Simulate
-            $%SimButton.text = "停止模拟"
-            $PlotWindow.show()
-
-            send_to_server({
-                "command": "start_simulation",
-            })
-        State.Simulate:
-            state = State.Idle
-            $%SimButton.text = "开始模拟"
-
-            send_to_server({
-                "command": "stop_simulation",
-            })
 
 func _on_connect_timer_timeout() -> void:
     client.poll()
@@ -169,25 +105,20 @@ func _on_device_lib_window_close_requested() -> void:
     $DeviceLibWindow.hide()
 
 func _input(event: InputEvent) -> void:
-    if state != Editor.State.AddDevice:
-        return
     if Input.is_action_just_pressed("cancel"):
-        state = Editor.State.Idle
-        device_to_add.get_parent().remove_child(device_to_add)
-        device_to_add = null
+        hsm.dispatch(&"cancel_add_device")
+        hsm.dispatch(&"cancel_connect_wire")
     if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
-        state = Editor.State.Idle
+        hsm.dispatch(&"confirm_add_device")
 
-func _on_reset_button_pressed() -> void:
-    plotter.clear()
+func _on_sim_button_pressed() -> void:
+    hsm.dispatch(&"simulate")
 
-    var circuit = construct()
-    send_to_server({
-        "command": "reset_simulation",
-        "circuit": circuit
-    })
+func _on_pause_button_pressed() -> void:
+    simulate_state.dispatch(&"pause_simulate")
 
 func _on_step_button_pressed() -> void:
-    send_to_server({
-        "command": "step_simulation"
-    })
+    simulate_state.dispatch(&"step_simulate")
+
+func _on_continuous_button_pressed() -> void:
+    simulate_state.dispatch(&"continuous_simulate")

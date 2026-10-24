@@ -29,7 +29,7 @@ func _process(_delta: float) -> void:
     
     area.visible = is_mouse_in_area()
 
-    if editor.state == Editor.State.Simulate:
+    if editor.leaf_state == editor.showv_sim_state:
         $Label.show()
         var x = "u%d"%node_id
         if x in editor.solution:
@@ -51,23 +51,11 @@ func _input(event: InputEvent) -> void:
         if just_moved:
             just_moved = false
         elif is_mouse_in_area():
-            match editor.state:
-                Editor.State.Idle:
-                    editor.state = Editor.State.ConnectWire
-                    editor.selected_port = self
-                Editor.State.ConnectWire:
-                    editor.state = Editor.State.Idle
-                    if editor.selected_port != self:
-                        net_list.connect_port(self, editor.selected_port)
-                    editor.selected_port = null
+            editor.hsm.dispatch(&"connect_wire", self)
     if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_RIGHT and is_mouse_in_area():
         get_viewport().set_input_as_handled()
         $PopupMenu.position = DisplayServer.mouse_get_position()
         $PopupMenu.popup()
-
-    if Input.is_action_just_pressed("cancel") and editor.selected_port == self and editor.state == Editor.State.ConnectWire:
-        editor.state = Editor.State.Idle
-        editor.selected_port = null
 
 func _on_popup_menu_id_pressed(id: int) -> void:
     if id == SET_REF_ID:

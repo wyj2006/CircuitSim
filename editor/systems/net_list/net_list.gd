@@ -36,28 +36,27 @@ func disconnect_port(a: Port, b: Port):
         connections[b].erase(a)
 
 func _draw() -> void:
-    match editor.state:
-        Editor.State.ConnectWire:
-            var points = []
+    if editor.active_state == editor.connect_wire_state:
+        var points = []
     
-            var a_pos = to_local(editor.selected_port.global_position)
-            var b_pos = get_local_mouse_position()
+        var a_pos = to_local(editor.connect_wire_state.selected_port.global_position)
+        var b_pos = get_local_mouse_position()
 
-            var start = world_to_cell(a_pos)
-            var end = world_to_cell(b_pos)
-            var ids = astar.get_id_path(start, end)
+        var start = world_to_cell(a_pos)
+        var end = world_to_cell(b_pos)
+        var ids = astar.get_id_path(start, end)
 
-            if len(ids) >= 2:
-                for id in ids:
-                    points.append(cell_to_world(id))
-            else:
-                points = [a_pos, b_pos]
+        if len(ids) >= 2:
+            for id in ids:
+                points.append(cell_to_world(id))
+        else:
+            points = [a_pos, b_pos]
 
-            points = simplify_path(points)
-            if points.size() < 2:
-                return
+        points = simplify_path(points)
+        if points.size() < 2:
+            return
 
-            draw_polyline(points, Color.BLACK, 1)
+        draw_polyline(points, Color.BLACK, 1)
 
 func _process(_delta: float) -> void:
     queue_redraw()
@@ -119,53 +118,46 @@ func simplify_path(path) -> Array:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT:
-        match editor.state:
-            Editor.State.Idle:
-                wires_under_mouse = []
-                var closest = null
-                for child in get_children():
-                    if not child is Wire:
-                        continue
-                    var t = child.mouse_on_wire()
-                    if t != null:
-                        wires_under_mouse.append(child)
-                        closest = child.to_global(t)
-
-                if wires_under_mouse.size() > 0:
-                    editor.state = Editor.State.ConnectWire
-                    
-                    var port: Port = PortScene.instantiate()
-                    port.position = $"../Ports".to_local(closest)
-                    $"../Ports".add_child(port)
-                    editor.selected_port = port
-
-                    for wire in wires_under_mouse:
-                        connect_port(editor.selected_port, wire.a_port)
-                        connect_port(editor.selected_port, wire.b_port)
-                        remove_child(wire)
-
-            Editor.State.ConnectWire:
-                editor.state = Editor.State.Idle
-
-                var port: Port = PortScene.instantiate()
-                $"../Ports".add_child(port)
-
-                var closest = get_global_mouse_position()
-
-                for child in get_children():
-                    if not child is Wire:
-                        continue
-                    var t = child.mouse_on_wire()
-                    if t == null:
-                        continue
+        if editor.active_state == editor.idle_state:
+            wires_under_mouse = []
+            var closest = null
+            for child in get_children():
+                if not child is Wire:
+                    continue
+                var t = child.mouse_on_wire()
+                if t != null:
+                    wires_under_mouse.append(child)
                     closest = child.to_global(t)
 
-                    connect_port(port, child.a_port)
-                    connect_port(port, child.b_port)
-                    remove_child(child)
-                
+            if wires_under_mouse.size() > 0:
+                var port: Port = PortScene.instantiate()
                 port.position = $"../Ports".to_local(closest)
+                $"../Ports".add_child(port)
 
-                connect_port(port, editor.selected_port)
+                for wire in wires_under_mouse:
+                    connect_port(port, wire.a_port)
+                    connect_port(port, wire.b_port)
+                    remove_child(wire)
 
-                editor.selected_port = null
+                editor.hsm.dispatch(&"connect_wire", port)
+        elif editor.active_state == editor.connect_wire_state:
+            var port: Port = PortScene.instantiate()
+            $"../Ports".add_child(port)
+
+            var closest = get_global_mouse_position()
+
+            for child in get_children():
+                if not child is Wire:
+                    continue
+                var t = child.mouse_on_wire()
+                if t == null:
+                    continue
+                closest = child.to_global(t)
+
+                connect_port(port, child.a_port)
+                connect_port(port, child.b_port)
+                remove_child(child)
+                
+            port.position = $"../Ports".to_local(closest)
+
+            editor.hsm.dispatch(&"connect_wire", port)
