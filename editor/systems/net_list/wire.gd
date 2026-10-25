@@ -7,7 +7,6 @@ const DELETE_ID = 0
 
 @onready var editor: Editor = $/root/Editor
 @onready var net_list: NetList = get_parent()
-@onready var astar: AStarGrid2D = net_list.astar
 
 var color = Color.BLACK
 var points = []
@@ -21,7 +20,7 @@ func _draw() -> void:
 
     var start = net_list.world_to_cell(a_pos)
     var end = net_list.world_to_cell(b_pos)
-    var ids = astar.get_id_path(start, end)
+    var ids = net_list.get_id_path(start, end)
 
     if len(ids) >= 2:
         for id in ids:
@@ -29,7 +28,6 @@ func _draw() -> void:
     else:
         points = [a_pos, b_pos]
 
-    points = net_list.simplify_path(points)
     if points.size() >= 2:
         draw_polyline(points, Color.BLACK, 1)
 

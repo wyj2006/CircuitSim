@@ -29,7 +29,7 @@ func _process(_delta: float) -> void:
     
     area.visible = is_mouse_in_area()
 
-    if editor.leaf_state == editor.showv_sim_state:
+    if editor.active_state == editor.simulate_state:
         $Label.show()
         var x = "u%d"%node_id
         if x in editor.solution:

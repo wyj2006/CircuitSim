@@ -1,4 +1,4 @@
-extends LimboHSM
+extends LimboState
 
 @onready var editor: Editor = $/root/Editor
 @onready var net_list: NetList = $/root/Editor/NetList
@@ -69,6 +69,9 @@ func construct():
 
 func _enter() -> void:
     $/root/Editor/%SimButton.text = "退出模拟"
+    $/root/Editor/%PauseButton.disabled = false
+    $/root/Editor/%StepButton.disabled = false
+    $/root/Editor/%ContinuousButton.disabled = false
     
     editor.plotter.clear()
     editor.plot_window.show()
@@ -81,12 +84,20 @@ func _enter() -> void:
 
 func _exit() -> void:
     $/root/Editor/%SimButton.text = "进入模拟"
+    $/root/Editor/%PauseButton.disabled = true
+    $/root/Editor/%StepButton.disabled = true
+    $/root/Editor/%ContinuousButton.disabled = true
 
     editor.send_to_server({
         "command": "stop_simulation",
     })
 
 func _setup() -> void:
+    $/root/Editor/%SimButton.text = "进入模拟"
+    $/root/Editor/%PauseButton.disabled = true
+    $/root/Editor/%StepButton.disabled = true
+    $/root/Editor/%ContinuousButton.disabled = true
+
     add_event_handler(&"pause_simulate", func():
         editor.send_to_server({
             "command": "stop_simulation",

@@ -4,10 +4,12 @@ class_name NetList extends Node2D
 
 var WireScene = preload("res://systems/net_list/wire.tscn")
 var PortScene = preload("res://components/port/port.tscn")
+
 var connections: Dictionary[Port, Array] = {}
-var astar: AStarGrid2D = AStarGrid2D.new()
-var cell_size = Vector2i(1, 1)
 var wires_under_mouse: Array[Wire] = []
+
+var cell_size = Vector2i(1, 1)
+var solid_points = {}
 
 func connect_port(a: Port, b: Port):
     if a not in connections:
@@ -44,7 +46,7 @@ func _draw() -> void:
 
         var start = world_to_cell(a_pos)
         var end = world_to_cell(b_pos)
-        var ids = astar.get_id_path(start, end)
+        var ids = get_id_path(start, end)
 
         if len(ids) >= 2:
             for id in ids:
@@ -52,7 +54,6 @@ func _draw() -> void:
         else:
             points = [a_pos, b_pos]
 
-        points = simplify_path(points)
         if points.size() < 2:
             return
 
@@ -73,25 +74,71 @@ func set_obstacle(rect: Rect2):
 
     for x in range(min_id.x, max_id.x + 1):
         for y in range(min_id.y, max_id.y + 1):
-            var id = Vector2i(x, y)
-            astar.set_point_solid(id, true)
+            solid_points[Vector2i(x, y)] = true
 
 func build_astar():
-    astar.clear()
-    astar.cell_size = cell_size
-    astar.region = Rect2i(-500, -500, 1000, 1000)
-    astar.update()
-
+    solid_points = {}
     #一定要让NetList在场景树中的Devices下面
     for child in $/root/Editor/Devices.get_children():
         if not child is Device:
             continue
         set_obstacle(Rect2(child.region.position + to_local(child.global_position), child.region.size))
 
-func _ready() -> void:
-    astar.default_compute_heuristic = AStarGrid2D.HEURISTIC_OCTILE
-    astar.default_estimate_heuristic = AStarGrid2D.HEURISTIC_OCTILE
+func get_id_path(start: Vector2i, end: Vector2i):
+    var min_turned_point = UINT32_MAX
+    var final_path = []
 
+    for start_dir in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+        var queue = [start]
+        var priority = {start: 0}
+        var came_from = {start: null}
+        var cost = {start: 0}
+
+        while not queue.is_empty():
+            var current = queue.pop_back()
+            if current == end:
+                break
+            for dir in [start_dir] if current == start else [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+                var next = current + dir
+                #当前节点不在障碍内, 但下一个节点在就忽略这个节点
+                if next in solid_points and current not in solid_points:
+                    continue
+
+                var turned = false
+                if came_from[current] != null:
+                    var last_dir = current - came_from[current]
+                    turned = last_dir != dir
+
+                var new_cost = cost[current] + abs(dir.x) + abs(dir.y) + (1 if turned else 0)
+
+                if not (next not in cost or new_cost < cost[next]):
+                    continue
+
+                cost[next] = new_cost
+                came_from[next] = current
+
+                if next in priority:
+                    queue.erase(next)
+                priority[next] = new_cost + abs(end.x - next.x) + abs(end.y - next.y)
+                for i in range(queue.size() + 1):
+                    if i >= queue.size() or priority[queue[i]] <= priority[next]:
+                        queue.insert(i, next)
+                        break
+        
+        var turned_point = 0
+        var path = [end]
+        while came_from[path[0]] != null:
+            path.insert(0, came_from[path[0]])
+            if path.size() >= 3 and path[0] - path[1] != path[1] - path[2]:
+                turned_point += 1
+        
+        if turned_point < min_turned_point:
+            min_turned_point = turned_point
+            final_path = path
+
+    return final_path
+
+func _ready() -> void:
     build_astar()
 
 func _on_devices_child_entered_tree(node: Node) -> void:
@@ -99,22 +146,6 @@ func _on_devices_child_entered_tree(node: Node) -> void:
     if editable == null:
         return
     editable.moved.connect(func(_device): build_astar())
-
-func simplify_path(path) -> Array:
-    if path.size() <= 2:
-        return path
-
-    var result: Array[Vector2i] = [path[0]]
-    var prev_dir = path[1] - path[0]
-
-    for i in range(2, path.size()):
-        var dir = path[i] - path[i - 1]
-        if dir != prev_dir:
-            result.append(path[i - 1])
-        prev_dir = dir
-
-    result.append(path[-1])
-    return result
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT:

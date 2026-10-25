@@ -86,7 +86,7 @@ fn main() {
                     .spawn(move || {
                         let mut circuit = Circuit::new();
                         let mut t = 0.0;
-                        let dt = 0.001;
+                        let dt = 0.0005;
                         let mut init_value = Solution::new();
 
                         loop {

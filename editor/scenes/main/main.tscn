@@ -44,57 +44,59 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=979007685]
+[node name="ToolBar" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=979007685]
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
 
-[node name="SimButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=102793773]
+[node name="SimButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=102793773]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "进入模拟"
 
-[node name="PauseButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=1481376716]
+[node name="PauseButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=1481376716]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 focus_mode = 0
 text = "暂停模拟"
 
-[node name="StepButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=2054127190]
+[node name="StepButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=2054127190]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "步进"
 
-[node name="ContinuousButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2" unique_id=883049194]
+[node name="ContinuousButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=883049194]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "持续模拟"
 
-[node name="DeviceLibButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1770576324]
+[node name="DeviceLibButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=1770576324]
 layout_mode = 2
 size_flags_horizontal = 0
 focus_mode = 0
 text = "元件库"
 
-[node name="PlotterButton" type="Button" parent="CanvasLayer/VBoxContainer" unique_id=1175336306]
+[node name="PlotterButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=1175336306]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 text = "绘图窗口"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]
+[node name="StatusBar" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]
 layout_mode = 2
 size_flags_vertical = 10
 
-[node name="ConnectLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer" unique_id=756053420]
+[node name="ConnectLabel" type="Label" parent="CanvasLayer/VBoxContainer/StatusBar" unique_id=756053420]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "连接中..."
 
-[node name="TimeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer" unique_id=855090825]
+[node name="TimeLabel" type="Label" parent="CanvasLayer/VBoxContainer/StatusBar" unique_id=855090825]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
@@ -109,6 +111,7 @@ ignore_time_scale = true
 
 [node name="PlotWindow" type="Window" parent="." unique_id=1534832730]
 oversampling_override = 1.0
+title = "图像"
 initial_position = 1
 size = Vector2i(1000, 618)
 visible = false
@@ -144,18 +147,16 @@ script = ExtResource("7_yyfjg")
 [node name="AddDevice" type="LimboState" parent="HSM" unique_id=1034550189]
 script = ExtResource("7_hujxm")
 
-[node name="Simulate" type="LimboHSM" parent="HSM" unique_id=1044733686]
+[node name="Simulate" type="LimboState" parent="HSM" unique_id=1412929700]
 script = ExtResource("9_b1x3f")
 
-[node name="ShowVoltage" type="LimboState" parent="HSM/Simulate" unique_id=1833894862]
-
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/SimButton" to="." method="_on_sim_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/PauseButton" to="." method="_on_pause_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/StepButton" to="." method="_on_step_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ContinuousButton" to="." method="_on_continuous_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/PlotterButton" to="PlotWindow" method="_on_plotter_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/SimButton" to="." method="_on_sim_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/StepButton" to="." method="_on_step_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/ContinuousButton" to="." method="_on_continuous_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/PlotterButton" to="PlotWindow" method="_on_plotter_button_pressed"]
 [connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
 [connection signal="close_requested" from="PlotWindow" to="PlotWindow" method="_on_close_requested"]
 [connection signal="close_requested" from="DeviceLibWindow" to="." method="_on_device_lib_window_close_requested"]

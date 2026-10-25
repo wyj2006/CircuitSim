@@ -5,8 +5,7 @@ class_name Editor extends Node2D
 @onready var connect_wire_state: LimboState = $%HSM/ConnectWire
 @onready var idle_state: LimboState = $%HSM/Idle
 @onready var add_device_state: LimboState = $%HSM/AddDevice
-@onready var simulate_state: LimboHSM = $%HSM/Simulate
-@onready var showv_sim_state: LimboState = $%HSM/Simulate/ShowVoltage
+@onready var simulate_state: LimboState = $%HSM/Simulate
 
 var active_state: LimboState:
     get:
