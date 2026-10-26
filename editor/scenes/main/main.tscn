@@ -31,6 +31,7 @@ script = ExtResource("1_iuonh")
 [node name="NetList" parent="." unique_id=892168356 instance=ExtResource("2_k2fmo")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=444064001]
+zoom = Vector2(2, 2)
 script = ExtResource("4_l3cfh")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1920355990]
@@ -151,6 +152,7 @@ script = ExtResource("7_hujxm")
 script = ExtResource("9_b1x3f")
 
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
+[connection signal="child_entered_tree" from="NetList" to="NetList" method="_on_child_entered_tree"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/SimButton" to="." method="_on_sim_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/StepButton" to="." method="_on_step_button_pressed"]

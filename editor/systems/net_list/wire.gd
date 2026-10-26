@@ -12,22 +12,17 @@ var color = Color.BLACK
 var points = []
 var threshold = 4
 
-func _draw() -> void:
+func update_points():
     points = []
     
     var a_pos = net_list.to_local(a_port.global_position)
     var b_pos = net_list.to_local(b_port.global_position)
 
-    var start = net_list.world_to_cell(a_pos)
-    var end = net_list.world_to_cell(b_pos)
-    var ids = net_list.get_id_path(start, end)
+    var start = Vector2i(a_pos)
+    var end = Vector2i(b_pos)
+    points = net_list.find_path(start, end)
 
-    if len(ids) >= 2:
-        for id in ids:
-            points.append(net_list.cell_to_world(id))
-    else:
-        points = [a_pos, b_pos]
-
+func _draw() -> void:
     if points.size() >= 2:
         draw_polyline(points, Color.BLACK, 1)
 
@@ -36,19 +31,20 @@ func _draw() -> void:
         var size = Vector2(threshold, threshold)
         draw_rect(Rect2(closest - size / 2, size), Color.RED)
 
+func on_port_tree_exiting():
+    var parent = get_parent()
+    if parent == null:
+        return
+    parent.remove_child(self)
+
 func _ready() -> void:
-    a_port.tree_exiting.connect(func():
-        var parent = get_parent()
-        if parent == null:
-            return
-        parent.remove_child(self)
-    )
-    b_port.tree_exiting.connect(func():
-        var parent = get_parent()
-        if parent == null:
-            return
-        parent.remove_child(self)
-    )
+    a_port.tree_exiting.connect(on_port_tree_exiting)
+    b_port.tree_exiting.connect(on_port_tree_exiting)
+
+    if not a_port.moved.is_connected(net_list.update_router):
+        a_port.moved.connect(net_list.update_router)
+    if not a_port.moved.is_connected(net_list.update_router):
+        b_port.moved.connect(net_list.update_router)
 
     if a_port not in net_list.connections:
         net_list.connections[a_port] = []
@@ -78,7 +74,18 @@ func mouse_on_wire():
     return null
 
 func _on_tree_exiting() -> void:
+    a_port.tree_exiting.disconnect(on_port_tree_exiting)
+    b_port.tree_exiting.disconnect(on_port_tree_exiting)
+
+    if a_port.moved.is_connected(net_list.update_router):
+        a_port.moved.disconnect(net_list.update_router)
+    if a_port.moved.is_connected(net_list.update_router):
+        b_port.moved.disconnect(net_list.update_router)
+    
     net_list.disconnect_port(a_port, b_port)
+
+func _on_tree_exited() -> void:
+    net_list.update_router()
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_RIGHT and mouse_on_wire() != null:

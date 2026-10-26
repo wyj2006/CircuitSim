@@ -3,6 +3,8 @@ class_name Port extends Node2D
 const SET_REF_ID = 0
 const DELETE_ID = 1
 
+signal moved
+
 @export var is_ref := false
 
 @onready var net_list: NetList = $/root/Editor/NetList
@@ -46,6 +48,7 @@ func _input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and event.pressure == 1 and is_free and (is_mouse_in_area() or just_moved):
         position += event.relative / camera.zoom
         just_moved = true
+        moved.emit()
     if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT and (is_mouse_in_area() or just_moved):
         get_viewport().set_input_as_handled()
         if just_moved:

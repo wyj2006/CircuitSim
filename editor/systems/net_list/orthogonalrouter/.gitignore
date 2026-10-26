@@ -1,0 +1,8 @@
+*.obj*
+.sconsign.dblite
+*.lib
+*.exp
+~*
+*.ilk
+*.pdb
+router_visualizer.py

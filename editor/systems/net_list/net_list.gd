@@ -1,15 +1,15 @@
 class_name NetList extends Node2D
 
 @onready var editor: Editor = $/root/Editor
+@onready var devices: Node2D = $/root/Editor/Devices
+@onready var ports: Node2D = $/root/Editor/Ports
 
 var WireScene = preload("res://systems/net_list/wire.tscn")
 var PortScene = preload("res://components/port/port.tscn")
 
 var connections: Dictionary[Port, Array] = {}
 var wires_under_mouse: Array[Wire] = []
-
-var cell_size = Vector2i(1, 1)
-var solid_points = {}
+var router := OrthogonalRouter.new()
 
 func connect_port(a: Port, b: Port):
     if a not in connections:
@@ -39,114 +39,80 @@ func disconnect_port(a: Port, b: Port):
 
 func _draw() -> void:
     if editor.active_state == editor.connect_wire_state:
-        var points = []
-    
+        update_router()
+        
         var a_pos = to_local(editor.connect_wire_state.selected_port.global_position)
         var b_pos = get_local_mouse_position()
 
-        var start = world_to_cell(a_pos)
-        var end = world_to_cell(b_pos)
-        var ids = get_id_path(start, end)
+        var start = Vector2i(a_pos)
+        var end = Vector2i(b_pos)
+        var points = find_path(start, end)
 
-        if len(ids) >= 2:
-            for id in ids:
-                points.append(cell_to_world(id))
-        else:
-            points = [a_pos, b_pos]
-
-        if points.size() < 2:
-            return
-
-        draw_polyline(points, Color.BLACK, 1)
+        if points.size() >= 2:
+            draw_polyline(points, Color.BLACK, 1)
 
 func _process(_delta: float) -> void:
     queue_redraw()
 
-func world_to_cell(pos: Vector2) -> Vector2i:
-    return Vector2i(ceili(pos.x / cell_size.x), ceili(pos.y / cell_size.y))
+func update_router():
+    router.clear()
 
-func cell_to_world(id: Vector2i) -> Vector2:
-    return Vector2(id.x * cell_size.x, id.y * cell_size.y)
+    var port_pos = []
 
-func set_obstacle(rect: Rect2):
-    var min_id = world_to_cell(rect.position)
-    var max_id = world_to_cell(rect.end)
-
-    for x in range(min_id.x, max_id.x + 1):
-        for y in range(min_id.y, max_id.y + 1):
-            solid_points[Vector2i(x, y)] = true
-
-func build_astar():
-    solid_points = {}
     #一定要让NetList在场景树中的Devices下面
-    for child in $/root/Editor/Devices.get_children():
-        if not child is Device:
+    for device in devices.get_children():
+        if not device is Device:
             continue
-        set_obstacle(Rect2(child.region.position + to_local(child.global_position), child.region.size))
+        var rect = Rect2(device.region.position + to_local(device.global_position), device.region.size)
+        for x in range(rect.position.x, rect.end.x + 1):
+            for y in range(rect.position.y, rect.end.y + 1):
+                router.set_obstacle(Vector2i(x, y), false)
 
-func get_id_path(start: Vector2i, end: Vector2i):
-    var min_turned_point = UINT32_MAX
-    var final_path = []
+        for port in device.get_children():
+            if not port is Port:
+                continue
+            port_pos.append(Vector2i(to_local(port.global_position)))
 
-    for start_dir in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
-        var queue = [start]
-        var priority = {start: 0}
-        var came_from = {start: null}
-        var cost = {start: 0}
+    for port in ports.get_children():
+        if not port is Port:
+            continue
+        port_pos.append(Vector2i(to_local(port.global_position)))
 
-        while not queue.is_empty():
-            var current = queue.pop_back()
-            if current == end:
-                break
-            for dir in [start_dir] if current == start else [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
-                var next = current + dir
-                #当前节点不在障碍内, 但下一个节点在就忽略这个节点
-                if next in solid_points and current not in solid_points:
-                    continue
+    #避免导线重叠
+    for wire in get_children():
+        if not wire is Wire:
+            continue
+        wire.update_points()
+        for i in range(wire.points.size() - 1):
+            var a: Vector2i = wire.points[i]
+            var b: Vector2i = wire.points[i + 1]
 
-                var turned = false
-                if came_from[current] != null:
-                    var last_dir = current - came_from[current]
-                    turned = last_dir != dir
+            if not (a.x == b.x or a.y == b.y):
+                continue
 
-                var new_cost = cost[current] + abs(dir.x) + abs(dir.y) + (1 if turned else 0)
+            var dir = (b - a).sign()
+            var k = a
+            while k != b:
+                if k not in port_pos:
+                    router.set_obstacle(k, false)
+                k += dir
 
-                if not (next not in cost or new_cost < cost[next]):
-                    continue
-
-                cost[next] = new_cost
-                came_from[next] = current
-
-                if next in priority:
-                    queue.erase(next)
-                priority[next] = new_cost + abs(end.x - next.x) + abs(end.y - next.y)
-                for i in range(queue.size() + 1):
-                    if i >= queue.size() or priority[queue[i]] <= priority[next]:
-                        queue.insert(i, next)
-                        break
-        
-        var turned_point = 0
-        var path = [end]
-        while came_from[path[0]] != null:
-            path.insert(0, came_from[path[0]])
-            if path.size() >= 3 and path[0] - path[1] != path[1] - path[2]:
-                turned_point += 1
-        
-        if turned_point < min_turned_point:
-            min_turned_point = turned_point
-            final_path = path
-
-    return final_path
+func find_path(start: Vector2i, end: Vector2i):
+    return router.find_path(start, end)
 
 func _ready() -> void:
-    build_astar()
+    update_router()
 
 func _on_devices_child_entered_tree(node: Node) -> void:
     var editable: Editable = node.find_child("Editable")
     if editable == null:
         return
-    editable.moved.connect(func(_device): build_astar())
+    editable.moved.connect(func(_device): update_router())
 
+func _on_child_entered_tree(node: Node) -> void:
+    if node is Wire:
+        update_router.call_deferred()
+    
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT:
         if editor.active_state == editor.idle_state:
