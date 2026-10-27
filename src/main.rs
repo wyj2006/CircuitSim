@@ -7,7 +7,7 @@ use crate::{
     circuit::{Circuit, REF_NODE, Solution, Unknown},
     devices::{
         DeviceId, capacitor::Capacitor, diode::Diode, inductor::Inductor, resistor::Resistor,
-        voltage::Voltage,
+        voltage_source::VoltageSouce,
     },
 };
 use anyhow::Result;
@@ -262,7 +262,7 @@ pub fn test_diode() {
     while i <= 5.0 {
         let solution = Circuit {
             devices: vec![
-                Box::new(Voltage {
+                Box::new(VoltageSouce {
                     device_id: 0,
                     pos: 0,
                     neg: REF_NODE,

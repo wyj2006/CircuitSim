@@ -2,8 +2,10 @@
 
 [ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_kstcc"]
 [ext_resource type="Script" uid="uid://revjc35iq0a4" path="res://devices/capacitor/capacitor.gd" id="2_lkgd8"]
-[ext_resource type="Texture2D" uid="uid://bstf2tp7wkt8j" path="res://devices/capacitor/capacitor-polarized.svg" id="2_ma4v1"]
 [ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="3_g5x8a"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_g5x8a"]
+load_path = "res://.godot/imported/capacitor-polarized.svg-fd7e993d6276a2c821c1143146dd7ba6.ctex"
 
 [node name="Capacitor" unique_id=517322215 instance=ExtResource("1_kstcc")]
 script = ExtResource("2_lkgd8")
@@ -12,8 +14,8 @@ value = 0.0
 [node name="Editable" parent="." index="0" unique_id=1053472653]
 range_size = Vector2(15, 30)
 
-[node name="CapacitorPolarized" type="Sprite2D" parent="." index="1" unique_id=194087846]
-texture = ExtResource("2_ma4v1")
+[node name="Sprite2D" type="Sprite2D" parent="." index="1" unique_id=194087846]
+texture = SubResource("CompressedTexture2D_g5x8a")
 
 [node name="PosPort" parent="." index="2" unique_id=1456156079 instance=ExtResource("3_g5x8a")]
 position = Vector2(0, -20)

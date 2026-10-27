@@ -1,9 +1,10 @@
 pub mod capacitor;
+pub mod current_source;
 pub mod diode;
 pub mod inductor;
 pub mod resistor;
 pub mod spdt_switch;
-pub mod voltage;
+pub mod voltage_source;
 
 use crate::{
     circuit::{NodeId, Solution, Unknown},

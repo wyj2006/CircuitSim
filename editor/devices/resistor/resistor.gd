@@ -14,9 +14,6 @@ func construct() -> Dictionary:
 func get_device_name() -> String:
     return "电阻"
 
-func get_texture() -> Texture:
-    return $Resistor.texture
-
 func get_attributes() -> Array[Dictionary]:
     return [ {
         "display_name": "阻值",

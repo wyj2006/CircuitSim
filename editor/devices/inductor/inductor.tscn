@@ -12,7 +12,7 @@ value = 0.0
 [node name="Editable" parent="." index="0" unique_id=1053472653]
 range_size = Vector2(15, 30)
 
-[node name="Inductor" type="Sprite2D" parent="." index="1" unique_id=1064064788]
+[node name="Sprite2D" type="Sprite2D" parent="." index="1" unique_id=1064064788]
 texture = ExtResource("2_axfl3")
 
 [node name="PosPort" parent="." index="2" unique_id=1456156079 instance=ExtResource("3_8rl54")]

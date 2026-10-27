@@ -1,4 +1,4 @@
-class_name Voltage extends Device
+class_name VoltageSource extends Device
 
 @export var value_expr = "0"
 
@@ -11,7 +11,7 @@ func _ready() -> void:
 func construct() -> Dictionary:
     return {
         "device_id": device_id,
-        "type": "voltage",
+        "type": "voltage_source",
         "value_expr": value_expr,
         "pos": pos_port.node_id,
         "neg": neg_port.node_id,
@@ -20,9 +20,6 @@ func construct() -> Dictionary:
 
 func get_device_name() -> String:
     return "电压源"
-
-func get_texture() -> Texture:
-    return $SourceVoltage.texture
 
 func get_attributes() -> Array[Dictionary]:
     return [ {

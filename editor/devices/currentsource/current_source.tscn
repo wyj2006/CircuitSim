@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://w3wp0sag4g48"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_ggpi2"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="2_isvhj"]
+[ext_resource type="Script" uid="uid://7uvq5l55u4sr" path="res://devices/currentsource/current_source.gd" id="2_x07l1"]
+[ext_resource type="Texture2D" uid="uid://dtua1yhae36r5" path="res://devices/currentsource/source-current.svg" id="3_dvxer"]
+
+[node name="CurrentSource" unique_id=517322215 instance=ExtResource("1_ggpi2")]
+script = ExtResource("2_x07l1")
+value_expr = "0"
+
+[node name="Editable" parent="." index="0" unique_id=1053472653]
+range_size = Vector2(25, 25)
+
+[node name="PosPort" parent="." index="1" unique_id=1456156079 instance=ExtResource("2_isvhj")]
+position = Vector2(0, -20)
+
+[node name="NegPort" parent="." index="2" unique_id=1261043982 instance=ExtResource("2_isvhj")]
+position = Vector2(0, 20)
+
+[node name="Sprite2D" type="Sprite2D" parent="." index="3" unique_id=75769529]
+texture = ExtResource("3_dvxer")

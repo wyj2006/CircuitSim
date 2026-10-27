@@ -16,7 +16,7 @@ func _ready() -> void:
     current_num = 2
 
 func _process(_delta: float) -> void:
-    $SpdtSwitch.flip_v = not is_touch1
+    $Sprite2D.flip_v = not is_touch1
 
 func construct() -> Dictionary:
     return {
@@ -32,9 +32,6 @@ func construct() -> Dictionary:
 
 func get_device_name() -> String:
     return "单刀双掷开关"
-
-func get_texture() -> Texture:
-    return $SpdtSwitch.texture
 
 func _input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and event.pressure == 1 and selected:

@@ -9,7 +9,7 @@
 script = ExtResource("3_hqvle")
 value = 0.0
 
-[node name="Resistor" type="Sprite2D" parent="." index="0" unique_id=1686866558]
+[node name="Sprite2D" type="Sprite2D" parent="." index="0" unique_id=1686866558]
 texture = ExtResource("2_p61eq")
 
 [node name="PosPort" parent="." index="1" unique_id=1456156079 instance=ExtResource("3_8bxia")]

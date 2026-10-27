@@ -1,6 +1,7 @@
 extends Control
 
-var DeviceItemScene = preload("res://scenes/devicelibrary/device_item.tscn")
+@onready var editor: Editor = $/root/Editor
+
 var devices: Array[PackedScene] = []
 
 func _ready() -> void:
@@ -10,6 +11,8 @@ func _ready() -> void:
                 devices.append(load("res://devices/%s/%s" % [dir, file_name]))
 
     for i in devices:
-        var item: DeviceItem = DeviceItemScene.instantiate()
-        item.device_scene = i
-        $%GridContainer.add_child(item)
+        var device: Device = i.instantiate()
+        $%ItemList.add_item(device.get_device_name(), device.get_texture())
+
+func _on_item_list_item_activated(index: int) -> void:
+    editor.hsm.dispatch(&"add_device", devices[index].instantiate())

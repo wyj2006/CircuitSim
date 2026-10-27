@@ -18,9 +18,6 @@ func construct() -> Dictionary:
 func get_device_name() -> String:
     return "电感"
 
-func get_texture() -> Texture:
-    return $Inductor.texture
-
 func get_attributes() -> Array[Dictionary]:
     return [ {
         "display_name": "感值",

@@ -25,9 +25,6 @@ func construct() -> Dictionary:
 func get_device_name() -> String:
     return "二极管"
 
-func get_texture() -> Texture:
-    return $SymbolDiode.texture
-
 func get_attributes() -> Array[Dictionary]:
     return [
         {

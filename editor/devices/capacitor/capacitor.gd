@@ -14,9 +14,6 @@ func construct() -> Dictionary:
 func get_device_name() -> String:
     return "电容"
 
-func get_texture() -> Texture:
-    return $CapacitorPolarized.texture
-
 func get_attributes() -> Array[Dictionary]:
     return [ {
         "display_name": "容值",

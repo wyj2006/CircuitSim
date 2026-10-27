@@ -3,24 +3,24 @@
 [ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_i2wip"]
 [ext_resource type="Script" uid="uid://cgdfvyxk8lirq" path="res://devices/spdtswitch/spdt_switch.gd" id="2_nqdtv"]
 [ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="3_7w5cl"]
-[ext_resource type="Texture2D" uid="uid://ddakwjm2nsbx" path="res://devices/spdtswitch/SPDT-Switch.svg" id="4_17jxf"]
+[ext_resource type="Texture2D" uid="uid://cn36jmd7d2wi3" path="res://devices/spdtswitch/e2z-switch-spdt.svg" id="4_17jxf"]
 
 [node name="SPDTSwitch" unique_id=517322215 instance=ExtResource("1_i2wip")]
 script = ExtResource("2_nqdtv")
 is_touch1 = true
 
 [node name="Editable" parent="." index="0" unique_id=1053472653]
-range_size = Vector2(50, 35)
+range_size = Vector2(10, 10)
 
 [node name="CommonPort" parent="." index="1" unique_id=1456156079 instance=ExtResource("3_7w5cl")]
-position = Vector2(29, 0)
+position = Vector2(-9, 0)
 
 [node name="Throw1Port" parent="." index="2" unique_id=1468865370 instance=ExtResource("3_7w5cl")]
-position = Vector2(-33, -11)
+position = Vector2(9, -3)
 
 [node name="Throw2Port" parent="." index="3" unique_id=1042351056 instance=ExtResource("3_7w5cl")]
-position = Vector2(-33, 10)
+position = Vector2(9, 3)
 
-[node name="SpdtSwitch" type="Sprite2D" parent="." index="4" unique_id=1303882022]
+[node name="Sprite2D" type="Sprite2D" parent="." index="4" unique_id=1303882022]
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("4_17jxf")

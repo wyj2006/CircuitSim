@@ -2,8 +2,9 @@ use crate::{
     anyhow_trace,
     circuit::{Circuit, CurrentId, NodeId},
     devices::{
-        Device, DeviceId, capacitor::Capacitor, diode::Diode, inductor::Inductor,
-        resistor::Resistor, spdt_switch::SPDTSwitch, voltage::Voltage,
+        Device, DeviceId, capacitor::Capacitor, current_source::CurrentSource, diode::Diode,
+        inductor::Inductor, resistor::Resistor, spdt_switch::SPDTSwitch,
+        voltage_source::VoltageSouce,
     },
 };
 use anyhow::{Error, anyhow};
@@ -134,13 +135,21 @@ impl TryFrom<&Value> for Circuit {
                         neg: neg?,
                     }));
                 }
-                "voltage" => {
-                    devices.push(Box::new(Voltage {
+                "voltage_source" => {
+                    devices.push(Box::new(VoltageSouce {
                         device_id: device_id?,
                         value_expr: value_expr?,
                         pos: pos?,
                         neg: neg?,
                         current: current?,
+                    }));
+                }
+                "current_source" => {
+                    devices.push(Box::new(CurrentSource {
+                        device_id: device_id?,
+                        value_expr: value_expr?,
+                        pos: pos?,
+                        neg: neg?,
                     }));
                 }
                 "capacitor" => {

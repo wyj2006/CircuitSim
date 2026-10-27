@@ -27,7 +27,7 @@ func get_device_name() -> String:
     return "Unknown"
 
 func get_texture() -> Texture:
-    return Texture.new()
+    return $Sprite2D.texture
 
 func get_attributes() -> Array[Dictionary]:
     return []

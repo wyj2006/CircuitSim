@@ -7,13 +7,15 @@
 
 [node name="Diode" unique_id=517322215 instance=ExtResource("1_iusr3")]
 script = ExtResource("2_nb31j")
-saturation_current = 1e-08
-thermal_voltage = 0.02875
+isat_base = 1.0
+isat_exp = -9.0
+vt_base = 28.85
+vt_exp = -3.0
 
 [node name="Editable" parent="." index="0" unique_id=1053472653]
 range_size = Vector2(40, 30)
 
-[node name="SymbolDiode" type="Sprite2D" parent="." index="1" unique_id=1841615657]
+[node name="Sprite2D" type="Sprite2D" parent="." index="1" unique_id=1841615657]
 texture = ExtResource("3_17q6b")
 
 [node name="PosPort" parent="." index="2" unique_id=1456156079 instance=ExtResource("4_txcme")]

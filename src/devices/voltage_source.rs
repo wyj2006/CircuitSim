@@ -9,7 +9,7 @@ use evalexpr::*;
 use indexmap::IndexSet;
 
 #[derive(Debug)]
-pub struct Voltage {
+pub struct VoltageSouce {
     pub device_id: DeviceId,
     pub value_expr: Node,
     pub pos: NodeId,
@@ -17,7 +17,7 @@ pub struct Voltage {
     pub current: CurrentId,
 }
 
-impl Device for Voltage {
+impl Device for VoltageSouce {
     fn device_id(&self) -> DeviceId {
         self.device_id
     }

@@ -2,6 +2,14 @@
 
 [ext_resource type="Script" uid="uid://dxpv21qhgvb5v" path="res://scenes/devicelibrary/device_library.gd" id="1_6nb02"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6nb02"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6nb02"]
+bg_color = Color(0.9144639, 0.9144638, 0.91446364, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jrelu"]
+bg_color = Color(0.94938904, 0.94938904, 0.94938904, 1)
+
 [node name="DeviceLibrary" type="Control" unique_id=1736573774]
 layout_mode = 3
 anchors_preset = 15
@@ -11,7 +19,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6nb02")
 
-[node name="GridContainer" type="GridContainer" parent="." unique_id=962600501]
+[node name="ItemList" type="ItemList" parent="." unique_id=2128514764]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -19,4 +27,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-columns = 10
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hovered_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hovered_selected_color = Color(0, 0, 0, 1)
+theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
+theme_override_styles/panel = SubResource("StyleBoxEmpty_6nb02")
+theme_override_styles/hovered = SubResource("StyleBoxFlat_6nb02")
+theme_override_styles/hovered_selected = SubResource("StyleBoxFlat_6nb02")
+theme_override_styles/hovered_selected_focus = SubResource("StyleBoxFlat_6nb02")
+theme_override_styles/selected = SubResource("StyleBoxFlat_jrelu")
+theme_override_styles/selected_focus = SubResource("StyleBoxFlat_jrelu")
+
+[connection signal="item_activated" from="ItemList" to="." method="_on_item_list_item_activated"]

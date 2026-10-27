@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddakwjm2nsbx"
-path="res://.godot/imported/SPDT-Switch.svg-ea60e5957cf57cefbbbec0277b38352c.ctex"
+uid="uid://dtua1yhae36r5"
+path="res://.godot/imported/source-current.svg-f74817a318728874f1b6164dafbf559f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://devices/spdtswitch/SPDT-Switch.svg"
-dest_files=["res://.godot/imported/SPDT-Switch.svg-ea60e5957cf57cefbbbec0277b38352c.ctex"]
+source_file="res://devices/currentsource/source-current.svg"
+dest_files=["res://.godot/imported/source-current.svg-f74817a318728874f1b6164dafbf559f.ctex"]
 
 [params]
 
