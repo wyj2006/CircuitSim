@@ -6,6 +6,7 @@ class_name Editor extends Node2D
 @onready var idle_state: LimboState = $%HSM/Idle
 @onready var add_device_state: LimboState = $%HSM/AddDevice
 @onready var simulate_state: LimboState = $%HSM/Simulate
+@onready var client: Client = $Client
 
 var active_state: LimboState:
     get:
@@ -13,12 +14,6 @@ var active_state: LimboState:
 var leaf_state: LimboState:
     get:
         return hsm.get_leaf_state()
-
-var client = StreamPeerTCP.new()
-var server_data: PackedByteArray = []
-
-var sim_time = 0
-var solution = {}
 
 func _ready() -> void:
     hsm.add_transition(idle_state, add_device_state, &"add_device")
@@ -38,59 +33,10 @@ func _ready() -> void:
     hsm.set_active(true)
 
 func _process(_delta: float) -> void:
-    if $%ConnectTimer.is_stopped():
-        client.poll()
-        if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-            $%ConnectTimer.start()
-
-    client.poll()
-    if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-        return
-
-    var available_bytes = client.get_available_bytes()
-    if available_bytes != 0:
-        server_data.append_array(client.get_data(available_bytes)[1])
-        
-    var index = server_data.find(0)
-    while index != -1:
-        var json = JSON.parse_string(server_data.slice(0, index).get_string_from_utf8())
-        server_data = server_data.slice(index + 1)
-
-        match json["type"]:
-            "simulate_solution":
-                sim_time = json["time"]
-                solution = json["solution"]
-                $%TimeLabel.text = str(sim_time)
-            "error":
-                $%ErrorDialog.dialog_text = json["message"]
-                $%ErrorDialog.popup()
-
-                hsm.dispatch(&"error_occurred")
-
-        index = server_data.find(0)
-
-func send_to_server(data):
-    client.poll()
-    if client.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-        return
-        
-    client.put_data(JSON.stringify(data).to_utf8_buffer())
-    client.put_u8(0)
-
-func _on_connect_timer_timeout() -> void:
-    client.poll()
-    match client.get_status():
-        StreamPeerTCP.STATUS_NONE:
-            $%ConnectLabel.text = "连接中..."
-            client.connect_to_host("127.0.0.1", 1025)
-        StreamPeerTCP.STATUS_CONNECTING:
-            pass
-        StreamPeerTCP.STATUS_CONNECTED:
-            $%ConnectLabel.text = "已连接"
-            client.set_no_delay(true)
-            $%ConnectTimer.stop()
-        StreamPeerTCP.STATUS_ERROR:
-            client.disconnect_from_host()
+    if client.status == StreamPeerTCP.STATUS_CONNECTED:
+        $%ConnectLabel.text = "已连接"
+    else:
+        $%ConnectLabel.text = "连接中..."
 
 func _input(event: InputEvent) -> void:
     if Input.is_action_just_pressed("cancel"):
@@ -113,3 +59,6 @@ func _on_continuous_button_pressed() -> void:
 
 func _on_v_probe_button_pressed() -> void:
     hsm.dispatch(&"add_device", VoltageProbeScene.instantiate())
+
+func _on_client_new_solution(time: float, _solution: Dictionary) -> void:
+    $%TimeLabel.text = str(time)

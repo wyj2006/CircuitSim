@@ -15,7 +15,7 @@ signal moved
 var node_id := UINT32_MAX
 var is_free:
     get:
-        return is_inside_tree() and get_parent() == $/root/Editor/Ports
+        return is_inside_tree() and get_parent() == net_list
 var just_moved = false
 
 func _ready() -> void:

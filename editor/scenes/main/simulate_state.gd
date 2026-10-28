@@ -2,6 +2,7 @@ extends LimboState
 
 @onready var editor: Editor = $/root/Editor
 @onready var net_list: NetList = $/root/Editor/NetList
+@onready var client: Client = $/root/Editor/Client
 
 var devices:
     get:
@@ -82,7 +83,7 @@ func _enter() -> void:
         plotter.clear()
     
     var circuit = construct()
-    editor.send_to_server({
+    client.send_to_server({
         "command": "reset_simulation",
         "circuit": circuit
     })
@@ -93,7 +94,7 @@ func _exit() -> void:
     $/root/Editor/%StepButton.disabled = true
     $/root/Editor/%ContinuousButton.disabled = true
 
-    editor.send_to_server({
+    client.send_to_server({
         "command": "stop_simulation",
     })
 
@@ -104,21 +105,21 @@ func _setup() -> void:
     $/root/Editor/%ContinuousButton.disabled = true
 
     add_event_handler(&"pause_simulate", func():
-        editor.send_to_server({
+        client.send_to_server({
             "command": "stop_simulation",
         })
         return false
     )
 
     add_event_handler(&"step_simulate", func():
-        editor.send_to_server({
+        client.send_to_server({
             "command": "step_simulation",
         })
         return false
     )
 
     add_event_handler(&"continuous_simulate", func():
-        editor.send_to_server({
+        client.send_to_server({
             "command": "start_simulation",
         })
         return false

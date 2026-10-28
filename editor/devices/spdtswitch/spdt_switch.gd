@@ -6,6 +6,7 @@ class_name SPDTSwitch extends Device
 @onready var throw1_port: Port = $Throw1Port
 @onready var throw2_port: Port = $Throw2Port
 @onready var editor: Editor = $/root/Editor
+@onready var client: Client = $/root/Editor/Client
 
 var just_moved = false
 var selected:
@@ -41,7 +42,7 @@ func _input(event: InputEvent) -> void:
             just_moved = false
         else:
             is_touch1 = not is_touch1
-            editor.send_to_server({
+            client.send_to_server({
                 "command": "update_device",
                 "device_id": device_id,
                 "attributes": {

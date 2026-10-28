@@ -2,7 +2,6 @@ class_name NetList extends Node2D
 
 @onready var editor: Editor = $/root/Editor
 @onready var devices: Node2D = $/root/Editor/Devices
-@onready var ports: Node2D = $/root/Editor/Ports
 
 var WireScene = preload("res://systems/netlist/wire.tscn")
 var PortScene = preload("res://components/port/port.tscn")
@@ -73,7 +72,7 @@ func update_router():
                 continue
             port_pos.append(Vector2i(to_local(port.global_position)))
 
-    for port in ports.get_children():
+    for port in get_children():
         if not port is Port:
             continue
         port_pos.append(Vector2i(to_local(port.global_position)))
@@ -128,8 +127,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
             if wires_under_mouse.size() > 0:
                 var port: Port = PortScene.instantiate()
-                port.position = $"../Ports".to_local(closest)
-                $"../Ports".add_child(port)
+                port.position = to_local(closest)
+                add_child(port)
 
                 for wire in wires_under_mouse:
                     connect_port(port, wire.a_port)
@@ -139,7 +138,7 @@ func _unhandled_input(event: InputEvent) -> void:
                 editor.hsm.dispatch(&"connect_wire", port)
         elif editor.active_state == editor.connect_wire_state:
             var port: Port = PortScene.instantiate()
-            $"../Ports".add_child(port)
+            add_child(port)
 
             var closest = get_global_mouse_position()
 
@@ -155,6 +154,6 @@ func _unhandled_input(event: InputEvent) -> void:
                 connect_port(port, child.b_port)
                 remove_child(child)
                 
-            port.position = $"../Ports".to_local(closest)
+            port.position = to_local(closest)
 
             editor.hsm.dispatch(&"connect_wire", port)

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cihy8v4ocg2lg" path="res://scenes/main/main.gd" id="1_iuonh"]
 [ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/netlist/net_list.tscn" id="2_k2fmo"]
+[ext_resource type="PackedScene" uid="uid://barnpv8erm2hu" path="res://systems/client/client.tscn" id="4_b1x3f"]
 [ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
 [ext_resource type="Script" uid="uid://bwat7xugs6f5o" path="res://scenes/main/idle_state.gd" id="7_a8run"]
 [ext_resource type="Script" uid="uid://rhme1v5e2v6d" path="res://scenes/main/add_device_state.gd" id="7_hujxm"]
@@ -24,13 +25,29 @@ script = ExtResource("1_iuonh")
 
 [node name="Devices" type="Node2D" parent="." unique_id=263305404]
 
-[node name="Ports" type="Node2D" parent="." unique_id=974599190]
-
 [node name="NetList" parent="." unique_id=892168356 instance=ExtResource("2_k2fmo")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=444064001]
 zoom = Vector2(3, 3)
 script = ExtResource("4_l3cfh")
+
+[node name="Client" parent="." unique_id=514309018 instance=ExtResource("4_b1x3f")]
+
+[node name="HSM" type="LimboHSM" parent="." unique_id=1123334314]
+blackboard_plan = SubResource("BlackboardPlan_ow5a4")
+unique_name_in_owner = true
+
+[node name="Idle" type="LimboState" parent="HSM" unique_id=1296899026]
+script = ExtResource("7_a8run")
+
+[node name="ConnectWire" type="LimboState" parent="HSM" unique_id=725510771]
+script = ExtResource("7_yyfjg")
+
+[node name="AddDevice" type="LimboState" parent="HSM" unique_id=1034550189]
+script = ExtResource("7_hujxm")
+
+[node name="Simulate" type="LimboState" parent="HSM" unique_id=1412929700]
+script = ExtResource("9_b1x3f")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1920355990]
 
@@ -97,11 +114,6 @@ size_flags_vertical = 10
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "0"
 
-[node name="ConnectTimer" type="Timer" parent="." unique_id=239330275]
-unique_name_in_owner = true
-wait_time = 0.5
-ignore_time_scale = true
-
 [node name="DeviceLibWindow" type="Window" parent="." unique_id=1269913210]
 oversampling_override = 1.0
 title = "设备库"
@@ -111,33 +123,12 @@ visible = false
 
 [node name="DeviceLibrary" parent="DeviceLibWindow" unique_id=1736573774 instance=ExtResource("8_yyfjg")]
 
-[node name="ErrorDialog" type="AcceptDialog" parent="." unique_id=1274055426]
-unique_name_in_owner = true
-title = "Error"
-initial_position = 1
-
-[node name="HSM" type="LimboHSM" parent="." unique_id=1123334314]
-blackboard_plan = SubResource("BlackboardPlan_ow5a4")
-unique_name_in_owner = true
-
-[node name="Idle" type="LimboState" parent="HSM" unique_id=1296899026]
-script = ExtResource("7_a8run")
-
-[node name="ConnectWire" type="LimboState" parent="HSM" unique_id=725510771]
-script = ExtResource("7_yyfjg")
-
-[node name="AddDevice" type="LimboState" parent="HSM" unique_id=1034550189]
-script = ExtResource("7_hujxm")
-
-[node name="Simulate" type="LimboState" parent="HSM" unique_id=1412929700]
-script = ExtResource("9_b1x3f")
-
 [connection signal="child_entered_tree" from="Devices" to="NetList" method="_on_devices_child_entered_tree"]
 [connection signal="child_entered_tree" from="NetList" to="NetList" method="_on_child_entered_tree"]
+[connection signal="new_solution" from="Client" to="." method="_on_client_new_solution"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/SimButton" to="." method="_on_sim_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/StepButton" to="." method="_on_step_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/ContinuousButton" to="." method="_on_continuous_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
-[connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
 [connection signal="close_requested" from="DeviceLibWindow" to="." method="_on_device_lib_window_close_requested"]

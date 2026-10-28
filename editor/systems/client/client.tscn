@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://barnpv8erm2hu"]
+
+[ext_resource type="Script" uid="uid://t3elahjqcn1x" path="res://systems/client/client.gd" id="1_iksyu"]
+
+[node name="Client" type="Node2D" unique_id=514309018]
+script = ExtResource("1_iksyu")
+
+[node name="ConnectTimer" type="Timer" parent="." unique_id=1137407348]
+unique_name_in_owner = true
+wait_time = 0.5
+autostart = true
+ignore_time_scale = true
+
+[node name="ErrorDialog" type="AcceptDialog" parent="." unique_id=2060327170]
+unique_name_in_owner = true
+title = "Error"
+initial_position = 1
+
+[connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
