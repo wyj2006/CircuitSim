@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d1q7jxl711f7w"]
 
-[ext_resource type="Script" uid="uid://chiosdyxv8etu" path="res://systems/net_list/wire.gd" id="1_3l5ga"]
+[ext_resource type="Script" uid="uid://chiosdyxv8etu" path="res://systems/netlist/wire.gd" id="1_3l5ga"]
 
 [node name="Wire" type="Node2D" unique_id=414779530]
 script = ExtResource("1_3l5ga")

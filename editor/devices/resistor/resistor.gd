@@ -2,7 +2,7 @@ class_name Resistor extends Device
 
 @export var value := 0.0
 
-func construct() -> Dictionary:
+func construct():
     return {
         "device_id": device_id,
         "type": "resistor",

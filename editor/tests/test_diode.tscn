@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dkdth58g4mugy" path="res://devices/voltagesource/voltage_source.tscn" id="2_ebt4q"]
 [ext_resource type="PackedScene" uid="uid://y64mhuwh3igw" path="res://devices/resistor/resistor.tscn" id="3_hgrul"]
 [ext_resource type="PackedScene" uid="uid://dq2l1elhsi6s4" path="res://devices/diode/diode.tscn" id="4_7da3r"]
-[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/net_list/wire.tscn" id="5_i1c74"]
+[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/netlist/wire.tscn" id="5_i1c74"]
 
 [node name="Editor" unique_id=970941608 instance=ExtResource("1_tpwcg")]
 

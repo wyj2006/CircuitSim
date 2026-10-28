@@ -4,4 +4,4 @@ entry_symbol = "orthogonal_router_library_init"
 compatibility_minimum = "4.2"
 
 [libraries]
-windows.debug = "res://systems/net_list/orthogonalrouter/bin/orthogonal_router.dll"
+windows.debug = "res://systems/netlist/orthogonalrouter/bin/orthogonal_router.dll"

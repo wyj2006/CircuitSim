@@ -1,10 +1,8 @@
 [gd_scene format=3 uid="uid://b7rhs634no3cl"]
 
 [ext_resource type="Script" uid="uid://cihy8v4ocg2lg" path="res://scenes/main/main.gd" id="1_iuonh"]
-[ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/net_list/net_list.tscn" id="2_k2fmo"]
+[ext_resource type="PackedScene" uid="uid://b5ie2ibrpp4o0" path="res://systems/netlist/net_list.tscn" id="2_k2fmo"]
 [ext_resource type="Script" uid="uid://cs70ga6h45sqi" path="res://scenes/main/camera_2d.gd" id="4_l3cfh"]
-[ext_resource type="PackedScene" uid="uid://c7ofi8kh3l5vg" path="res://scenes/plotter/plotter.tscn" id="5_ow5a4"]
-[ext_resource type="Script" uid="uid://bxdwo8agv48wa" path="res://scenes/main/plot_window.gd" id="6_ow5a4"]
 [ext_resource type="Script" uid="uid://bwat7xugs6f5o" path="res://scenes/main/idle_state.gd" id="7_a8run"]
 [ext_resource type="Script" uid="uid://rhme1v5e2v6d" path="res://scenes/main/add_device_state.gd" id="7_hujxm"]
 [ext_resource type="Script" uid="uid://d2wljjeky58ka" path="res://scenes/main/connect_wire_state.gd" id="7_yyfjg"]
@@ -31,7 +29,7 @@ script = ExtResource("1_iuonh")
 [node name="NetList" parent="." unique_id=892168356 instance=ExtResource("2_k2fmo")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=444064001]
-zoom = Vector2(2, 2)
+zoom = Vector2(3, 3)
 script = ExtResource("4_l3cfh")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1920355990]
@@ -79,13 +77,7 @@ text = "持续模拟"
 layout_mode = 2
 size_flags_horizontal = 0
 focus_mode = 0
-text = "元件库"
-
-[node name="PlotterButton" type="Button" parent="CanvasLayer/VBoxContainer/ToolBar" unique_id=1175336306]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 0
-text = "绘图窗口"
+text = "设备库"
 
 [node name="StatusBar" type="HBoxContainer" parent="CanvasLayer/VBoxContainer" unique_id=778590212]
 layout_mode = 2
@@ -110,20 +102,9 @@ unique_name_in_owner = true
 wait_time = 0.5
 ignore_time_scale = true
 
-[node name="PlotWindow" type="Window" parent="." unique_id=1534832730]
-oversampling_override = 1.0
-title = "图像"
-initial_position = 1
-size = Vector2i(1000, 618)
-visible = false
-script = ExtResource("6_ow5a4")
-
-[node name="Plotter" parent="PlotWindow" unique_id=1441009083 instance=ExtResource("5_ow5a4")]
-unique_name_in_owner = true
-
 [node name="DeviceLibWindow" type="Window" parent="." unique_id=1269913210]
 oversampling_override = 1.0
-title = "元件库"
+title = "设备库"
 initial_position = 1
 size = Vector2i(1000, 618)
 visible = false
@@ -158,7 +139,5 @@ script = ExtResource("9_b1x3f")
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/StepButton" to="." method="_on_step_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/ContinuousButton" to="." method="_on_continuous_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/DeviceLibButton" to="." method="_on_device_lib_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/ToolBar/PlotterButton" to="PlotWindow" method="_on_plotter_button_pressed"]
 [connection signal="timeout" from="ConnectTimer" to="." method="_on_connect_timer_timeout"]
-[connection signal="close_requested" from="PlotWindow" to="PlotWindow" method="_on_close_requested"]
 [connection signal="close_requested" from="DeviceLibWindow" to="." method="_on_device_lib_window_close_requested"]

@@ -1,6 +1,6 @@
 class_name Editor extends Node2D
 
-@onready var plot_window: Window = $PlotWindow
+@onready var VoltageProbeScene = preload("res://devices/voltageprobe/voltage_probe.tscn")
 @onready var hsm: LimboHSM = $%HSM
 @onready var connect_wire_state: LimboState = $%HSM/ConnectWire
 @onready var idle_state: LimboState = $%HSM/Idle
@@ -17,10 +17,7 @@ var leaf_state: LimboState:
 var client = StreamPeerTCP.new()
 var server_data: PackedByteArray = []
 
-var PlotterScene = preload("res://scenes/plotter/plotter.tscn")
-var plotter: Plotter:
-    get:
-        return $%Plotter
+var sim_time = 0
 var solution = {}
 
 func _ready() -> void:
@@ -61,11 +58,9 @@ func _process(_delta: float) -> void:
 
         match json["type"]:
             "simulate_solution":
-                var time = json["time"]
+                sim_time = json["time"]
                 solution = json["solution"]
-                $%TimeLabel.text = str(time)
-
-                plotter.add_data(time, solution)
+                $%TimeLabel.text = str(sim_time)
             "error":
                 $%ErrorDialog.dialog_text = json["message"]
                 $%ErrorDialog.popup()
@@ -97,12 +92,6 @@ func _on_connect_timer_timeout() -> void:
         StreamPeerTCP.STATUS_ERROR:
             client.disconnect_from_host()
 
-func _on_device_lib_button_pressed() -> void:
-    $DeviceLibWindow.show()
-
-func _on_device_lib_window_close_requested() -> void:
-    $DeviceLibWindow.hide()
-
 func _input(event: InputEvent) -> void:
     if Input.is_action_just_pressed("cancel"):
         hsm.dispatch(&"cancel_add_device")
@@ -121,3 +110,6 @@ func _on_step_button_pressed() -> void:
 
 func _on_continuous_button_pressed() -> void:
     simulate_state.dispatch(&"continuous_simulate")
+
+func _on_v_probe_button_pressed() -> void:
+    hsm.dispatch(&"add_device", VoltageProbeScene.instantiate())

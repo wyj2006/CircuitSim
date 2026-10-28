@@ -5,7 +5,7 @@ class_name CurrentSource extends Device
 @onready var pos_port = $PosPort
 @onready var neg_port = $NegPort
 
-func construct() -> Dictionary:
+func construct():
     return {
         "device_id": device_id,
         "type": "current_source",

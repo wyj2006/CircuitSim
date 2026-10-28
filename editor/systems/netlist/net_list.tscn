@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b5ie2ibrpp4o0"]
 
-[ext_resource type="Script" uid="uid://cd740fbkct7ye" path="res://systems/net_list/net_list.gd" id="1_nf70v"]
+[ext_resource type="Script" uid="uid://cd740fbkct7ye" path="res://systems/netlist/net_list.gd" id="1_nf70v"]
 
 [node name="NetList" type="Node2D" unique_id=1703209582]
 script = ExtResource("1_nf70v")

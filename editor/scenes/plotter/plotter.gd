@@ -33,7 +33,7 @@ func _ready() -> void:
 func add_data(time: float, solution: Dictionary):
     for i in solution:
         if i not in variables:
-            variables[i] = dataset.add_series(i)
+            variables[i] = dataset.add_series(i, 10000)
             var b := TauXYSeriesBinding.new()
             b.series_id = variables[i]
             b.pane_index = 0

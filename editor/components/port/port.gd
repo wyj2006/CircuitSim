@@ -21,7 +21,6 @@ var just_moved = false
 func _ready() -> void:
     if self not in net_list.connections:
         net_list.connections[self] = []
-    $Label.hide()
 
     if not is_free:
         $PopupMenu.remove_item(DELETE_ID)
@@ -30,16 +29,6 @@ func _process(_delta: float) -> void:
     global_rotation = 0
     
     area.visible = is_mouse_in_area()
-
-    if editor.active_state == editor.simulate_state:
-        $Label.show()
-        var x = "u%d"%node_id
-        if x in editor.solution:
-            $Label.text = str(editor.solution[x])
-        else:
-            $Label.text = "0"
-    else:
-        $Label.hide()
 
 func is_mouse_in_area():
     return Rect2(area.position, area.size).has_point(get_local_mouse_position())

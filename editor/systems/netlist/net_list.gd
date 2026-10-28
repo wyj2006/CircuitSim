@@ -4,7 +4,7 @@ class_name NetList extends Node2D
 @onready var devices: Node2D = $/root/Editor/Devices
 @onready var ports: Node2D = $/root/Editor/Ports
 
-var WireScene = preload("res://systems/net_list/wire.tscn")
+var WireScene = preload("res://systems/netlist/wire.tscn")
 var PortScene = preload("res://components/port/port.tscn")
 
 var connections: Dictionary[Port, Array] = {}

@@ -5,7 +5,7 @@ class_name Inductor extends Device
 func _ready() -> void:
     current_num = 1
 
-func construct() -> Dictionary:
+func construct():
     return {
         "device_id": device_id,
         "type": "inductor",

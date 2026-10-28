@@ -20,14 +20,17 @@ var device_id = 0
 var current_ids = []
 var current_num = 0
 
-func construct() -> Dictionary:
-    return {}
+func construct():
+    return null
 
 func get_device_name() -> String:
     return "Unknown"
 
 func get_texture() -> Texture:
-    return $Sprite2D.texture
+    var sprite = get_node_or_null("Sprite2D")
+    if sprite == null:
+        return
+    return sprite.texture
 
 func get_attributes() -> Array[Dictionary]:
     return []

@@ -12,7 +12,7 @@ var thermal_voltage:
     get:
         return vt_base * pow(10, vt_exp)
 
-func construct() -> Dictionary:
+func construct():
     return {
         "device_id": device_id,
         "type": "diode",

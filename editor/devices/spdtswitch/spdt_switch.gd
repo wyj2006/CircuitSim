@@ -18,7 +18,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
     $Sprite2D.flip_v = not is_touch1
 
-func construct() -> Dictionary:
+func construct():
     return {
         "device_id": device_id,
         "type": "spdt_switch",

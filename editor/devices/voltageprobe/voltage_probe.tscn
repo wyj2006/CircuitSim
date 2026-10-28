@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://cntdhoxa3wt8a"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_ct7ed"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="2_4iyql"]
+[ext_resource type="Script" uid="uid://dbit3r3wavnmv" path="res://devices/voltageprobe/voltage_probe.gd" id="2_dliu0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qarrr"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[node name="VoltageProbe" unique_id=517322215 instance=ExtResource("1_ct7ed")]
+script = ExtResource("2_dliu0")
+
+[node name="Editable" parent="." index="0" unique_id=1053472653]
+range_size = Vector2(40, 40)
+
+[node name="Line2D" type="Line2D" parent="." index="1" unique_id=1857940101]
+position = Vector2(0, 19)
+points = PackedVector2Array(0, 12, 0, 0)
+width = 1.0
+default_color = Color(0, 0, 0, 1)
+
+[node name="Panel" type="Panel" parent="." index="2" unique_id=1967908910]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+pivot_offset = Vector2(20, 20)
+theme_override_styles/panel = SubResource("StyleBoxFlat_qarrr")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" index="0" unique_id=286740258]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="Panel/VBoxContainer" index="0" unique_id=533628157]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "电压"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="Panel/VBoxContainer" index="1" unique_id=530727141]
+unique_name_in_owner = true
+custom_maximum_size = Vector2(40, 24)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "0"
+autowrap_mode = 1
+
+[node name="Probe" parent="." index="3" unique_id=1456156079 instance=ExtResource("2_4iyql")]
+position = Vector2(0, 30)

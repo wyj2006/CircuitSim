@@ -5,28 +5,32 @@
 [ext_resource type="PackedScene" uid="uid://cafu1rgnvbnpv" path="res://devices/spdtswitch/spdt_switch.tscn" id="3_7s8qw"]
 [ext_resource type="PackedScene" uid="uid://dgurfm3ulgg7v" path="res://devices/capacitor/capacitor.tscn" id="4_b02k0"]
 [ext_resource type="PackedScene" uid="uid://wabnxrnxbwm3" path="res://devices/inductor/inductor.tscn" id="5_dgau4"]
-[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/net_list/wire.tscn" id="6_7s8qw"]
+[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/netlist/wire.tscn" id="6_7s8qw"]
+[ext_resource type="PackedScene" uid="uid://bxdsjr3ricrhh" path="res://devices/oscilloscope/oscilloscope.tscn" id="6_b02k0"]
 
 [node name="Editor" unique_id=970941608 instance=ExtResource("1_uk3c8")]
 
 [node name="VoltageSource" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="0" unique_id=517322215 instance=ExtResource("2_dg36q")]
-position = Vector2(-100, 0)
+position = Vector2(-50, 0)
 value_expr = "1"
 
 [node name="NegPort" parent="Devices/VoltageSource" index="2" unique_id=1541753485]
 is_ref = true
 
 [node name="SPDTSwitch" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=822681338 instance=ExtResource("3_7s8qw")]
-position = Vector2(0, -100)
+position = Vector2(0, -50)
 rotation = -1.5707964
 
 [node name="Capacitor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="2" unique_id=1769532636 instance=ExtResource("4_b02k0")]
-position = Vector2(0, 100)
+position = Vector2(0, 50)
 value = 1.0
 
 [node name="Inductor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="3" unique_id=2097949624 instance=ExtResource("5_dgau4")]
-position = Vector2(100, 0)
+position = Vector2(50, 0)
 value = 1.0
+
+[node name="Oscilloscope" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="4" unique_id=346829442 instance=ExtResource("6_b02k0")]
+position = Vector2(160, -121)
 
 [node name="Wire" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="0" unique_id=414779530 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_7s8qw")]
 a_port = NodePath("../../Devices/VoltageSource/PosPort")
@@ -48,7 +52,13 @@ b_port = NodePath("../../Devices/Inductor/PosPort")
 a_port = NodePath("../../Devices/Capacitor/NegPort")
 b_port = NodePath("../../Devices/Inductor/NegPort")
 
+[node name="Wire6" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="5" unique_id=472609643 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_7s8qw")]
+a_port = NodePath("../../Devices/Oscilloscope/Probe")
+b_port = NodePath("../../Devices/Inductor/PosPort")
+
 [editable path="Devices/VoltageSource"]
 [editable path="Devices/SPDTSwitch"]
 [editable path="Devices/Capacitor"]
 [editable path="Devices/Inductor"]
+[editable path="Devices/Oscilloscope"]
+[editable path="Devices/Oscilloscope/Panel/Plotter"]

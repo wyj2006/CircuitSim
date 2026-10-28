@@ -64,7 +64,10 @@ func construct():
 
     var circuit = []
     for device in devices:
-        circuit.append((device as Device).construct())
+        var t = (device as Device).construct()
+        if t == null:
+            continue
+        circuit.append(t)
     return circuit
 
 func _enter() -> void:
@@ -72,10 +75,12 @@ func _enter() -> void:
     $/root/Editor/%PauseButton.disabled = false
     $/root/Editor/%StepButton.disabled = false
     $/root/Editor/%ContinuousButton.disabled = false
-    
-    editor.plotter.clear()
-    editor.plot_window.show()
 
+    for plotter in $/root/Editor.find_children("Plotter"):
+        if not plotter is Plotter:
+            continue
+        plotter.clear()
+    
     var circuit = construct()
     editor.send_to_server({
         "command": "reset_simulation",
