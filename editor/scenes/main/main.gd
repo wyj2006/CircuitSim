@@ -62,3 +62,6 @@ func _on_v_probe_button_pressed() -> void:
 
 func _on_client_new_solution(time: float, _solution: Dictionary) -> void:
     $%TimeLabel.text = str(time)
+
+func _on_device_lib_button_pressed() -> void:
+    $DeviceLibWindow.show()

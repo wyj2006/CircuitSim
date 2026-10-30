@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bxdsjr3ricrhh"]
 
 [ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_3gegh"]
-[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="2_7btft"]
 [ext_resource type="Script" uid="uid://b7oqowlnr80qy" path="res://devices/oscilloscope/oscilloscope.gd" id="2_vxlve"]
 [ext_resource type="PackedScene" uid="uid://c7ofi8kh3l5vg" path="res://scenes/plotter/plotter.tscn" id="3_li5wl"]
 
@@ -16,20 +15,14 @@ script = ExtResource("2_vxlve")
 
 [node name="Editable" parent="." index="0" unique_id=1053472653]
 range_size = Vector2(150, 100)
+could_rotate = false
 
-[node name="Line2D" type="Line2D" parent="." index="1" unique_id=460879177]
-points = PackedVector2Array(0, 71, 0, 50)
-width = 1.0
-default_color = Color(0, 0, 0, 1)
-
-[node name="Probe" parent="." index="2" unique_id=1456156079 instance=ExtResource("2_7btft")]
-position = Vector2(0, 70)
-
-[node name="Panel" type="Panel" parent="." index="3" unique_id=699988272]
+[node name="Panel" type="Panel" parent="." index="1" unique_id=699988272]
 offset_left = -75.0
 offset_top = -50.0
 offset_right = 75.0
 offset_bottom = 50.0
+pivot_offset = Vector2(75, 50)
 theme_override_styles/panel = SubResource("StyleBoxFlat_li5wl")
 
 [node name="Plotter" parent="Panel" index="0" unique_id=1441009083 instance=ExtResource("3_li5wl")]
@@ -38,6 +31,7 @@ layout_mode = 1
 
 [node name="TauPlot" parent="Panel/Plotter" index="0" unique_id=1077832180]
 theme = SubResource("Theme_yyfjg")
-legend_enabled = false
+
+[node name="Lines" type="Node2D" parent="." index="2" unique_id=1992781244]
 
 [editable path="Panel/Plotter"]

@@ -41,10 +41,10 @@ func _ready() -> void:
     a_port.tree_exiting.connect(on_port_tree_exiting)
     b_port.tree_exiting.connect(on_port_tree_exiting)
 
-    if not a_port.moved.is_connected(net_list.update_router):
-        a_port.moved.connect(net_list.update_router)
-    if not a_port.moved.is_connected(net_list.update_router):
-        b_port.moved.connect(net_list.update_router)
+    if not a_port.moved.is_connected(net_list.update_router.call_deferred):
+        a_port.moved.connect(net_list.update_router.call_deferred)
+    if not a_port.moved.is_connected(net_list.update_router.call_deferred):
+        b_port.moved.connect(net_list.update_router.call_deferred)
 
     if a_port not in net_list.connections:
         net_list.connections[a_port] = []
@@ -77,10 +77,10 @@ func _on_tree_exiting() -> void:
     a_port.tree_exiting.disconnect(on_port_tree_exiting)
     b_port.tree_exiting.disconnect(on_port_tree_exiting)
 
-    if a_port.moved.is_connected(net_list.update_router):
-        a_port.moved.disconnect(net_list.update_router)
-    if a_port.moved.is_connected(net_list.update_router):
-        b_port.moved.disconnect(net_list.update_router)
+    if a_port.moved.is_connected(net_list.update_router.call_deferred):
+        a_port.moved.disconnect(net_list.update_router.call_deferred)
+    if a_port.moved.is_connected(net_list.update_router.call_deferred):
+        b_port.moved.disconnect(net_list.update_router.call_deferred)
     
     net_list.disconnect_port(a_port, b_port)
 

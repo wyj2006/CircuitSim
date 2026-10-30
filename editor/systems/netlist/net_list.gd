@@ -107,6 +107,7 @@ func _on_devices_child_entered_tree(node: Node) -> void:
     if editable == null:
         return
     editable.moved.connect(func(_device): update_router())
+    editable.rotated.connect(func(_device): update_router())
 
 func _on_child_entered_tree(node: Node) -> void:
     if node is Wire:

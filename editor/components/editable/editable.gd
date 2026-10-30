@@ -1,8 +1,10 @@
 class_name Editable extends Node2D
 
 signal moved(device)
+signal rotated(device)
 
 @export var range_size: Vector2
+@export var could_rotate = true
 
 @onready var camera: Camera2D = $/root/Editor/Camera2D
 @onready var area: ReferenceRect = $Area
@@ -31,8 +33,9 @@ func _input(event: InputEvent) -> void:
         parent.position += event.relative / camera.zoom
         moved.emit(get_parent())
 
-    if Input.is_action_just_pressed("rotate_device") and selected:
+    if Input.is_action_just_pressed("rotate_device") and selected and could_rotate:
         parent.rotation_degrees += 90
+        rotated.emit(get_parent())
     if Input.is_action_just_pressed("delete_device") and selected:
         get_parent().get_parent().remove_child(get_parent())
 

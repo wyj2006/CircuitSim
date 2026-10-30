@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://b7rhs634no3cl" path="res://scenes/main/main.tscn" id="1_uk3c8"]
 [ext_resource type="PackedScene" uid="uid://dkdth58g4mugy" path="res://devices/voltagesource/voltage_source.tscn" id="2_dg36q"]
+[ext_resource type="Script" uid="uid://c5472s0tu8mp1" path="res://tests/test_rl_oscillator.gd" id="2_dgau4"]
 [ext_resource type="PackedScene" uid="uid://cafu1rgnvbnpv" path="res://devices/spdtswitch/spdt_switch.tscn" id="3_7s8qw"]
 [ext_resource type="PackedScene" uid="uid://dgurfm3ulgg7v" path="res://devices/capacitor/capacitor.tscn" id="4_b02k0"]
 [ext_resource type="PackedScene" uid="uid://wabnxrnxbwm3" path="res://devices/inductor/inductor.tscn" id="5_dgau4"]
@@ -9,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://bxdsjr3ricrhh" path="res://devices/oscilloscope/oscilloscope.tscn" id="6_b02k0"]
 
 [node name="Editor" unique_id=970941608 instance=ExtResource("1_uk3c8")]
+script = ExtResource("2_dgau4")
 
 [node name="VoltageSource" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="0" unique_id=517322215 instance=ExtResource("2_dg36q")]
 position = Vector2(-50, 0)
@@ -26,10 +28,12 @@ position = Vector2(0, 50)
 value = 1.0
 
 [node name="Inductor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="3" unique_id=2097949624 instance=ExtResource("5_dgau4")]
+unique_name_in_owner = true
 position = Vector2(50, 0)
 value = 1.0
 
 [node name="Oscilloscope" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="4" unique_id=346829442 instance=ExtResource("6_b02k0")]
+unique_name_in_owner = true
 position = Vector2(160, -121)
 
 [node name="Wire" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="0" unique_id=414779530 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_7s8qw")]
@@ -52,13 +56,7 @@ b_port = NodePath("../../Devices/Inductor/PosPort")
 a_port = NodePath("../../Devices/Capacitor/NegPort")
 b_port = NodePath("../../Devices/Inductor/NegPort")
 
-[node name="Wire6" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="5" unique_id=472609643 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_7s8qw")]
-a_port = NodePath("../../Devices/Oscilloscope/Probe")
-b_port = NodePath("../../Devices/Inductor/PosPort")
-
 [editable path="Devices/VoltageSource"]
 [editable path="Devices/SPDTSwitch"]
 [editable path="Devices/Capacitor"]
 [editable path="Devices/Inductor"]
-[editable path="Devices/Oscilloscope"]
-[editable path="Devices/Oscilloscope/Panel/Plotter"]

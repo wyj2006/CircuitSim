@@ -37,7 +37,6 @@ func _input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and event.pressure == 1 and is_free and (is_mouse_in_area() or just_moved):
         position += event.relative / camera.zoom
         just_moved = true
-        moved.emit()
     if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT and (is_mouse_in_area() or just_moved):
         get_viewport().set_input_as_handled()
         if just_moved:
@@ -55,3 +54,8 @@ func _on_popup_menu_id_pressed(id: int) -> void:
         $PopupMenu.set_item_checked(SET_REF_ID, is_ref)
     if id == DELETE_ID:
         get_parent().remove_child(self)
+
+func _set(property: StringName, _value: Variant) -> bool:
+    if property == &"position":
+        moved.emit()
+    return false
