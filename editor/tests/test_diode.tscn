@@ -13,7 +13,7 @@ position = Vector2(-200, -100)
 value_expr = "1"
 
 [node name="NegPort" parent="Devices/VoltageSource" index="2" unique_id=1541753485]
-is_ref = true
+_is_ref = true
 
 [node name="Resistor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=1560180456 instance=ExtResource("3_hgrul")]
 position = Vector2(-144, -131)
@@ -22,10 +22,6 @@ value = 1.0
 [node name="Diode" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="2" unique_id=424304459 instance=ExtResource("4_7da3r")]
 position = Vector2(-145, -37)
 rotation = 1.5707964
-isat_base = 1.0
-isat_exp = -9.0
-vt_base = 28.85
-vt_exp = -3.0
 
 [node name="Wire" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="0" unique_id=414779530 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("5_i1c74")]
 a_port = NodePath("../../Devices/VoltageSource/PosPort")

@@ -89,8 +89,8 @@ func _on_tree_exited() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_RIGHT and mouse_on_wire() != null:
-        $PopupMenu.position = DisplayServer.mouse_get_position()
-        $PopupMenu.popup()
+        $%PopupMenu.position = DisplayServer.mouse_get_position()
+        $%PopupMenu.popup()
 
 func _on_popup_menu_id_pressed(id: int) -> void:
     if id == DELETE_ID:

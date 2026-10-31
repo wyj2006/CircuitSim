@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://b6ja2ik1xkc3p"]
 
 [ext_resource type="Script" uid="uid://b8nbepks4nbu6" path="res://components/editable/editable.gd" id="1_7a7gh"]
-[ext_resource type="PackedScene" uid="uid://byjxrt57u4t2n" path="res://components/editable/addr_editor.tscn" id="2_no0kv"]
 
 [node name="Editable" type="Node2D" unique_id=1053472653]
 script = ExtResource("1_7a7gh")
@@ -18,6 +17,17 @@ initial_position = 1
 size = Vector2i(1000, 618)
 visible = false
 
-[node name="AddrEditor" parent="AttrEditorWin" unique_id=331746191 instance=ExtResource("2_no0kv")]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1326804662]
+
+[node name="PopupMenu" type="PopupMenu" parent="CanvasLayer" unique_id=1952938143]
+unique_name_in_owner = true
+oversampling_override = 1.0
+item_count = 2
+item_0/text = "删除"
+item_0/id = 0
+item_1/text = "属性"
+item_1/id = 1
 
 [connection signal="close_requested" from="AttrEditorWin" to="." method="_on_attr_editor_win_close_requested"]
+[connection signal="visibility_changed" from="AttrEditorWin" to="." method="_on_attr_editor_win_visibility_changed"]
+[connection signal="id_pressed" from="CanvasLayer/PopupMenu" to="." method="_on_popup_menu_id_pressed"]

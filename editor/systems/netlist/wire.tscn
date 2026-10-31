@@ -5,7 +5,10 @@
 [node name="Wire" type="Node2D" unique_id=414779530]
 script = ExtResource("1_3l5ga")
 
-[node name="PopupMenu" type="PopupMenu" parent="." unique_id=101108168]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=353987210]
+
+[node name="PopupMenu" type="PopupMenu" parent="CanvasLayer" unique_id=101108168]
+unique_name_in_owner = true
 oversampling_override = 1.0
 size = Vector2i(100, 35)
 item_count = 1
@@ -14,4 +17,4 @@ item_0/id = 0
 
 [connection signal="tree_exited" from="." to="." method="_on_tree_exited"]
 [connection signal="tree_exiting" from="." to="." method="_on_tree_exiting"]
-[connection signal="id_pressed" from="PopupMenu" to="." method="_on_popup_menu_id_pressed"]
+[connection signal="id_pressed" from="CanvasLayer/PopupMenu" to="." method="_on_popup_menu_id_pressed"]

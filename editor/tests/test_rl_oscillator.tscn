@@ -17,7 +17,7 @@ position = Vector2(-50, 0)
 value_expr = "1"
 
 [node name="NegPort" parent="Devices/VoltageSource" index="2" unique_id=1541753485]
-is_ref = true
+_is_ref = true
 
 [node name="SPDTSwitch" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=822681338 instance=ExtResource("3_7s8qw")]
 position = Vector2(0, -50)
