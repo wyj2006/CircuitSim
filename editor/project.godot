@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="SchematicEditor"
-run/main_scene="uid://uoof5yy8vd5e"
+run/main_scene="uid://dkupq1xwfujm7"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 

@@ -5,36 +5,20 @@ const DELETE_ID = 1
 
 signal moved
 
-@export var _is_ref = false
-@onready var is_ref: bool:
-    get:
-        return _is_ref
-    set(value):
-        _is_ref = value
-        if value != true:
-            return
-        #只允许有一个参考节点
-        for child in $/root/Editor/Devices.find_children("*", "Port"):
-            if not child is Port:
-                continue
-            if child == self:
-                continue
-            child.is_ref = false
+@export var is_ref = false
 
 @onready var net_list: NetList = $/root/Editor/NetList
 @onready var area: ColorRect = $Area
 @onready var editor: Editor = $/root/Editor
 @onready var camera: Camera2D = $/root/Editor/Camera2D
+@onready var node_id := net_list.REF_NODE_ID
 
-var node_id := UINT32_MAX
 var is_free:
     get:
         return is_inside_tree() and get_parent() == net_list
 var just_moved = false
 
 func _ready() -> void:
-    is_ref = _is_ref
-
     if self not in net_list.connections:
         net_list.connections[self] = []
 
@@ -45,6 +29,7 @@ func _process(_delta: float) -> void:
     global_rotation = 0
     
     area.visible = is_mouse_in_area()
+    area.color = Color.BLUE if is_ref else Color.RED
 
 func is_mouse_in_area():
     return Rect2(area.position, area.size).has_point(get_local_mouse_position())

@@ -13,7 +13,7 @@ position = Vector2(-200, -100)
 value_expr = "1"
 
 [node name="NegPort" parent="Devices/VoltageSource" index="2" unique_id=1541753485]
-_is_ref = true
+is_ref = true
 
 [node name="Resistor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=1560180456 instance=ExtResource("3_hgrul")]
 position = Vector2(-144, -131)

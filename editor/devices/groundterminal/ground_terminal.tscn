@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://n1d8dmgmc5hf"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_mqyrm"]
+[ext_resource type="Script" uid="uid://da2550fldu2fl" path="res://devices/groundterminal/ground_terminal.gd" id="2_47851"]
+[ext_resource type="Texture2D" uid="uid://cvxf5aaxud6fl" path="res://devices/groundterminal/e2z-earth.svg" id="2_hbq8v"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="4_p77p0"]
+
+[node name="GroundTerminal" unique_id=517322215 instance=ExtResource("1_mqyrm")]
+script = ExtResource("2_47851")
+
+[node name="Editable" parent="." index="0" unique_id=1053472653]
+range_size = Vector2(30, 30)
+
+[node name="Sprite2D" type="Sprite2D" parent="." index="1" unique_id=1983119287]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_hbq8v")
+
+[node name="Port" parent="." index="2" unique_id=1456156079 instance=ExtResource("4_p77p0")]
+position = Vector2(0, -18)
+is_ref = true

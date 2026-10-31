@@ -59,19 +59,21 @@ func _process(_delta: float) -> void:
     queue_redraw()
 
 func mouse_on_wire():
+    var closest = null
     var mouse_pos = get_local_mouse_position()
+    
     for i in range(points.size() - 1):
         var a = points[i]
         var b = points[i + 1]
 
-        var closest = Geometry2D.get_closest_point_to_segment(
+        var t = Geometry2D.get_closest_point_to_segment(
             mouse_pos, a, b
         )
 
-        if mouse_pos.distance_to(closest) <= threshold:
-            return closest
+        if mouse_pos.distance_to(t) <= threshold and (closest == null or closest.distance_to(mouse_pos) > t.distance_to(mouse_pos)):
+            closest = t
 
-    return null
+    return closest
 
 func _on_tree_exiting() -> void:
     a_port.tree_exiting.disconnect(on_port_tree_exiting)

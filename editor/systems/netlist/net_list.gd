@@ -1,5 +1,7 @@
 class_name NetList extends Node2D
 
+const REF_NODE_ID = UINT32_MAX
+
 @onready var editor: Editor = $/root/Editor
 @onready var devices: Node2D = $/root/Editor/Devices
 

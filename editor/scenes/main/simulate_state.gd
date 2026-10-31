@@ -16,13 +16,13 @@ func allocate_node_id():
     for i in net_list.connections:
         if i.is_inside_tree() and i.is_ref:
             has_ref = true
-            _allocate_node_id(i, UINT32_MAX, allocated)
+            _allocate_node_id(i, net_list.REF_NODE_ID, allocated)
 
     if not has_ref:
         for i in net_list.connections:
             if not i.is_inside_tree():
                 continue
-            _allocate_node_id(i, UINT32_MAX, allocated)
+            _allocate_node_id(i, net_list.REF_NODE_ID, allocated)
             break
 
     for i in net_list.connections:

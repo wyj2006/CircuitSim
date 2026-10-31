@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://dkupq1xwfujm7"]
+
+[ext_resource type="PackedScene" uid="uid://b7rhs634no3cl" path="res://scenes/main/main.tscn" id="1_famuy"]
+[ext_resource type="Script" uid="uid://bj7umd5lqr0x2" path="res://tests/test_terminal.gd" id="2_px2u1"]
+[ext_resource type="PackedScene" uid="uid://bfi67ua3nnfua" path="res://devices/voltageterminal/voltage_terminal.tscn" id="2_uvnwn"]
+[ext_resource type="PackedScene" uid="uid://y64mhuwh3igw" path="res://devices/resistor/resistor.tscn" id="3_nyce2"]
+[ext_resource type="PackedScene" uid="uid://n1d8dmgmc5hf" path="res://devices/groundterminal/ground_terminal.tscn" id="4_yge22"]
+[ext_resource type="PackedScene" uid="uid://bxdsjr3ricrhh" path="res://devices/oscilloscope/oscilloscope.tscn" id="5_px2u1"]
+[ext_resource type="PackedScene" uid="uid://d1q7jxl711f7w" path="res://systems/netlist/wire.tscn" id="6_yge22"]
+[ext_resource type="PackedScene" uid="uid://cntdhoxa3wt8a" path="res://devices/voltageprobe/voltage_probe.tscn" id="7_6laf5"]
+
+[node name="Editor" unique_id=970941608 instance=ExtResource("1_famuy")]
+script = ExtResource("2_px2u1")
+
+[node name="VoltageTerminal" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="0" unique_id=517322215 instance=ExtResource("2_uvnwn")]
+position = Vector2(-2, -70)
+rotation = -1.5707964
+value_expr = "1"
+
+[node name="Resistor" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="1" unique_id=353490742 instance=ExtResource("3_nyce2")]
+position = Vector2(-2, -28)
+value = 1.0
+
+[node name="Resistor2" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="2" unique_id=1594809609 instance=ExtResource("3_nyce2")]
+unique_name_in_owner = true
+position = Vector2(-1, 22)
+value = 2.0
+
+[node name="GroundTerminal" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="3" unique_id=1455289546 instance=ExtResource("4_yge22")]
+position = Vector2(-1, 71)
+
+[node name="Oscilloscope" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="4" unique_id=1939862620 instance=ExtResource("5_px2u1")]
+unique_name_in_owner = true
+position = Vector2(99, -65)
+
+[node name="VoltageProbe" parent="Devices" parent_id_path=PackedInt32Array(263305404) index="5" unique_id=1945986778 instance=ExtResource("7_6laf5")]
+position = Vector2(-43, -31)
+
+[node name="Wire" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="0" unique_id=414779530 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_yge22")]
+a_port = NodePath("../../Devices/VoltageTerminal/Port")
+b_port = NodePath("../../Devices/Resistor/PosPort")
+
+[node name="Wire2" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="1" unique_id=341464024 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_yge22")]
+a_port = NodePath("../../Devices/Resistor/NegPort")
+b_port = NodePath("../../Devices/Resistor2/PosPort")
+
+[node name="Wire3" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="2" unique_id=708436354 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_yge22")]
+a_port = NodePath("../../Devices/Resistor2/NegPort")
+b_port = NodePath("../../Devices/GroundTerminal/Port")
+
+[node name="Wire4" parent="NetList" parent_id_path=PackedInt32Array(892168356) index="3" unique_id=1660478964 node_paths=PackedStringArray("a_port", "b_port") instance=ExtResource("6_yge22")]
+a_port = NodePath("../../Devices/Resistor2/PosPort")
+b_port = NodePath("../../Devices/VoltageProbe/Probe")
+
+[editable path="Devices/VoltageTerminal"]
+[editable path="Devices/Resistor"]
+[editable path="Devices/Resistor2"]
+[editable path="Devices/GroundTerminal"]
+[editable path="Devices/VoltageProbe"]

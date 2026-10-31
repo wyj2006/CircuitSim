@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://bfi67ua3nnfua"]
+
+[ext_resource type="PackedScene" uid="uid://b1iwc01tip4y4" path="res://devices/device.tscn" id="1_wupkx"]
+[ext_resource type="Script" uid="uid://bqmwpu7lnnxoq" path="res://devices/voltageterminal/voltage_terminal.gd" id="2_ak1ck"]
+[ext_resource type="Texture2D" uid="uid://bs2guapb8w0w1" path="res://devices/voltageterminal/e2z-terminal.svg" id="3_uru3y"]
+[ext_resource type="PackedScene" uid="uid://clkkdgnaxkjon" path="res://components/port/port.tscn" id="4_khb6t"]
+
+[node name="VoltageTerminal" unique_id=517322215 instance=ExtResource("1_wupkx")]
+script = ExtResource("2_ak1ck")
+value_expr = "0"
+
+[node name="Editable" parent="." index="0" unique_id=1053472653]
+range_size = Vector2(20, 15)
+
+[node name="Sprite2D" type="Sprite2D" parent="." index="1" unique_id=889863339]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("3_uru3y")
+
+[node name="Port" parent="." index="2" unique_id=1456156079 instance=ExtResource("4_khb6t")]
+position = Vector2(-13, 0)
+
+[node name="Label" type="Label" parent="." index="3" unique_id=1853825999]
+offset_left = 15.0
+offset_top = -11.0
+offset_right = 38.0
+offset_bottom = 12.0
+pivot_offset = Vector2(11, 11)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
